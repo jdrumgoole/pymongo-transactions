@@ -144,18 +144,25 @@ Lets run the code without transactions first. If you examine the
 ``txn_sequence``.
 
 ```
-def txn_sequence(seats, payments, seat_no, delay, session=None):
-    price=500
+def txn_sequence(seats, payments, seat_no, delay_range, session=None):
+    price = random.randrange(200, 500, 10)
     seat_str = "{}A".format(seat_no)
-    print( "Booking seat: '{}'".format(seat_str))
-    seats.insert_one({"flight_no": "EI178", "seat": seat_str, "date": datetime.utcnow()}, session=session)
-    if delay > 0 :
-        delay_period = random.uniform(0, delay)
-        print( "Sleeping: {}".format(delay_period))
-        time.sleep(delay_period)
-    payments.insert_one({"flight_no": "EI178", "seat" : seat_str, "date": datetime.utcnow(), "price": price},session=session)
-    print( "Paying {} for seat '{}'".format(price, seat_str))
+    print(count( i, "Booking seat: '{}'".format(seat_str)))
+    seats.insert_one({"flight_no": "EI178", "seat": seat_str, "date": datetime.datetime.utcnow()}, session=session)
 
+    if type(delay_range) == tuple:
+        delay_period = random.uniform(delay_range[0], delay_range[1])
+    else:
+        delay_period = delay_range
+
+    print(count( seat_no, "Sleeping: {:02.3f}".format(delay_period)))
+    time.sleep(delay_period)
+
+    payments.insert_one({"flight_no": "EI178", "seat": seat_str, "date": datetime.datetime.utcnow(), "price": price},
+                        session=session)
+    print(count(seat_no, "Paying {} for seat '{}'".format(price, seat_str)))
+
+    return delay_period
 ```
 
 This program emulates a very simplified airline booking with a seat
@@ -164,7 +171,7 @@ we emulate this by inserting a random delay (the default is between 1
 and 3 seconds).
 
 If we run the program without transactions then we will see these
-delays reported by the ```watch_collection.py``` programs.
+delays reported by the ```watch_transactions.py``` programs.
 
 Now if we run the same program with the ```--usetxns``` we will see
 that the change streams become synchronised because both collections

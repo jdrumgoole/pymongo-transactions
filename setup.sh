@@ -17,7 +17,7 @@ if [ ! -d ${MONGODB_DIR} ];then
     echo "unpack mongodb"
     tar xvzf ${MONGODB}.tgz
 else
-    echo "Mongodb 4.0 RC0 already downloaded"
+    echo "Mongodb 4.0.0 already downloaded"
 fi
 #setup a virtualenv
 
@@ -26,7 +26,7 @@ fi
 
 echo "Checking python version"
 PYTHON_VERSION=`python3 -V 2>&1 |cut -f 2 -d ' '| cut -f 1 -d '.'` 2>&1 > /dev/null
-VER=`python -V 2>&1`
+VER=`python3 -V 2>&1`
 if  [ $PYTHON_VERSION == "3" ] ;then
     echo "Running python $VER"
 else

@@ -1,13 +1,19 @@
-# Pymongo Transactions Example Code
+# Introduction to MongoDB transactions in Python 
 
-Example code showing the MongoDB Python driver (Pymongo) in action.
+Multi-document transactions landed in 
+[MongoDB 4.0](https://www.mongodb.com/download-center#community). MongoDB has always
+been transactional around updates to a single document but with 
+multi-document transctions we can now wrap a set of database operations
+inside a begin and end transaction call and ensure 
+
+Example code showing the MongoDB Python driver (Pymongo 3.7.0) in action.
 
 * __setup.sh__ : Configure the enviroment including downloading MongoDB
 etc.
 * __mongod.sh__ : Start and stop MongoDB once setup.sh is run (mongodb.sh
 start|stop).
 * __transaction_main.py__ : Run a set of writes with and without transactions run ```python transactions_main.py -h``` for help.
-* __watch_collection.py__ : Use a mongodb changstream to watch collections
+* __watch_transactions.py__ : Use a mongodb changstream to watch collections
 as they change when transactions_main.py is running
 * __kill_primary.py__ : Starts a MongoDB replica set (on port 7100) and kills the
 primary on a regular basis. Used to emulate an election happening in the middle
@@ -20,9 +26,9 @@ The first example is for MongoDB 4.0 and shows the transactions code
 in action. The ```transactions/setups.sh``` will setup your enviroment
 including
 
-* Downloading and installing MongoDB 4.0 RC7
+* Downloading and installing MongoDB 4.0
 * Setting up a python virtualenv
-* Install the beta version of the Python MongoDB Driver (pymongo)
+* Install the latest version of the Python MongoDB Driver (pymongo 3.7.0)
 * Install mtools to allow easy starting of a
 [replica set](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/).
 (transactions require a replica set)
@@ -83,21 +89,29 @@ Now run it with transactions turned on. This is a useful test to
 ensure the environment is configured correctly:
 
 ```
-(venv) $ python transaction_main.py --usetxns
+(venv) $ python3 transaction_main.py --iterations 3 --usetxns
 using collection: PYTHON_TXNS_EXAMPLE.seats
 using collection: PYTHON_TXNS_EXAMPLE.payments
+Forcing collection creation (you can't create collections inside a txn)
+Collections created
+Using a fixed delay of 1.0
+
 Using transactions
-Booking seat: '1A'
-Sleeping: 0.13754149185618314
-Paying 500 for seat '1A'
-Using transactions
-Booking seat: '2A'
-Sleeping: 0.35207015352640436
-Paying 500 for seat '2A'
-Using transactions
-Booking seat: '3A'
-Sleeping: 0.9508466296765761
-Paying 500 for seat '3A'
+1. Booking seat: '1A'
+1. Sleeping: 1.000
+1. Paying 430 for seat '1A'
+2. Booking seat: '2A'
+2. Sleeping: 1.000
+2. Paying 490 for seat '2A'
+3. Booking seat: '3A'
+3. Sleeping: 1.000
+3. Paying 320 for seat '3A'
+
+No of transactions: 3
+Elaped time       : 0:00:03.026337
+Average txn time  : 0:00:00.008779
+Delay overhead    : 0:00:03
+Actual time       : 0:00:00.026337
 (venv) $
 ```
 

@@ -8,21 +8,34 @@ inside a begin and end transaction call. This ensure that even with inserts and/
 updates happening in multiple collections the external view of the data meets [ACID](https://en.wikipedia.org/wiki/ACID) constraints. 
 
 To demonstrae transactions in action we use a trivial example app that emulates a flight 
-booking for an online airline application. In this simplified booking we need to undertake two
+booking for an online airline application. In this simplified booking we need to undertake three
 operations:
 
-1. Allocate a seat
-2. Pay for a the seat
+1. Allocate a seat (**seat_collection**)
+2. Pay for a the seat (**payment_collection**)
+3. Update the count of allocated seats and transactions (**audit_collection**)
 
+For this application we will use three seperate collections for these documents as detailed in bold above. 
+The code in ```transactions_main.py``` updates these collections in serial unless the ```--usetxns``` argument
+is used. We then wrap the complete operation inside an ACID transaction. 
+the code in ``transactions_main.py`` is built directly using the MongoDB Python driver 
+([Pymongo 3.7.0](https://api.mongodb.com/python/current/)).
+See the section on [client sessions](https://api.mongodb.com/python/current/api/pymongo/client_session.html)
+for an overview of the new transactions API in 3.7.0.
 
+## Configure the Environment
 
-Example code showing the MongoDB []Python driver (Pymongo 3.7.0) in action.
+The following files can be found in the associated github repo
 
+* __.gitignore__ : Standard __.gitignore__ for Python
+* __LICENSE__ : Apaches 2.0 (standard Github) license
 * __setup.sh__ : Configure the enviroment including downloading MongoDB
 etc.
 * __mongod.sh__ : Start and stop MongoDB once setup.sh is run (mongodb.sh
 start|stop).
-* __transaction_main.py__ : Run a set of writes with and without transactions run ```python transactions_main.py -h``` for help.
+* __transaction_main.py__ : Run a set of writes with and without transactions run 
+```python transactions_main.py -h``` for help.
+* __transactions_retry.py__ : The file containing the transactions retry functions.
 * __watch_transactions.py__ : Use a mongodb changstream to watch collections
 as they change when transactions_main.py is running
 * __kill_primary.py__ : Starts a MongoDB replica set (on port 7100) and kills the
@@ -31,20 +44,18 @@ of a transaction.
 * __featurecompatibility.py__ : check and or set feature compatibility for
   th database (needs to be set to "4.0" for transactions)
 
-## Setting up the transactions code
-The first example is for MongoDB 4.0 and shows the transactions code
-in action. The ```transactions/setups.sh``` will setup your enviroment
-including
+The ```transactions/setups.sh``` will setup your enviroment
+including:
 
-* Downloading and installing MongoDB 4.0
-* Setting up a python virtualenv
-* Install the latest version of the Python MongoDB Driver (pymongo 3.7.0)
-* Install mtools to allow easy starting of a
+* Downloading and installing [MongoDB 4.0](https://www.mongodb.com/download-center?jmp=nav#community)
+* Setting up a python [virtualenv](https://docs.python.org/3/library/venv.html)
+* Installing the latest version of the Python MongoDB Driver (pymongo 3.7.0)
+* Installing [mtools](https://github.com/rueckstiess/mtools) to allow easy starting of a
 [replica set](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/).
 (transactions require a replica set)
-* Sstart a replica set.  The replica set name is **txntest**.
+* Start a replica set whose name is **txntest**.
 
-All this is achieved using a single ```setup.sh``` script. 
+All this is achieved by running  ```sh setup.sh``` script. 
 
 <pre>
 <b>$ sh setup.sh</b>
@@ -122,6 +133,7 @@ After ```setup.sh``` has completed you can start and stop the server by
 running ``mongod.sh``  with the ```start``` or ```stop``` parameter. The ``mongod,sh``
 program knows the name of the replica set (**txntest**) and the port number range (27100 to 2701)
 
+to reset your 
 ## Running the transactions example
 
 The transactions example consists of two python

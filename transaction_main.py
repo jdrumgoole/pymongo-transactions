@@ -1,5 +1,5 @@
 """
-Program to demon Transactions in MongoDB 4.x.
+Program to demon Transactions in MongoDB 4.0.
 
 @Author: Joe.Drumgoole@mongodb.com
 
@@ -10,6 +10,9 @@ import time
 import sys
 import random
 import pymongo.errors
+
+
+from transaction_retry import Transaction_Functor, run_transaction_with_retry, commit_with_retry
 
 def count(i,s):
     return "{}. {}".format(i,s)
@@ -25,22 +28,58 @@ def touch(collection):
     collection.delete_one(doc)
     return collection
 
-def txn_sequence(seats, payments, seat_no, delay_range, session=None):
-    price = random.randrange(200, 500, 10)
-    seat_str = "{}A".format(seat_no)
-    print(count( i, "Booking seat: '{}'".format(seat_str)))
-    seats.insert_one({"flight_no": "EI178", "seat": seat_str, "date": datetime.datetime.utcnow()}, session=session)
 
+def end_report(usetxns, audit_collection, total_delay):
+    end = datetime.datetime.utcnow()
+    time_delta_delay = datetime.timedelta(seconds=total_delay)
+    duration = end - start
+    actual_time = duration - time_delta_delay
+    print("")
+    doc = audit_collection.find_one( { "audit" :"seats"})
+    if usetxns:
+        print("No. of ACID txns        : {}".format( doc["count"] ))
+    else:
+        print("No. of non ACID txns    : {}".format( doc["count"] ))
+
+    print("Elaped time             : {}".format(duration))
+    print("Average txn time        : {}".format( actual_time / i))
+    print("Delay overhead          : {}".format(time_delta_delay))
+    print("Actual time             : {}".format( actual_time))
+
+def txn_sequence(seats, payments, audit, seat_no, delay_range, session=None):
+    '''
+    Run two inserts in sequence.
+    If session is not None we are in a transaction
+
+    :param seats: seats collection
+    :param payments: payments colection
+    :param seat_no: the number of the seat to be booked (defaults to row A)
+    :param delay_range: A tuple indicating a random delay between two ranges or a single float fixed delay
+    :param session: Session object required by a MongoDB transaction
+    :return: the delay_period for this transaction
+    '''
+    price = random.randrange(200, 500, 10)
     if type(delay_range) == tuple:
         delay_period = random.uniform(delay_range[0], delay_range[1])
     else:
         delay_period = delay_range
 
+    # Book Seat
+    seat_str = "{}A".format(seat_no)
+    print(count( i, "Booking seat: '{}'".format(seat_str)))
+    seats.insert_one({"flight_no" : "EI178",
+                      "seat"      : seat_str,
+                      "date"      : datetime.datetime.utcnow()},
+                     session=session)
     print(count( seat_no, "Sleeping: {:02.3f}".format(delay_period)))
+    #pay for seat
     time.sleep(delay_period)
-
-    payments.insert_one({"flight_no": "EI178", "seat": seat_str, "date": datetime.datetime.utcnow(), "price": price},
+    payments.insert_one({"flight_no" : "EI178",
+                         "seat"      : seat_str,
+                         "date"      : datetime.datetime.utcnow(),
+                         "price"     : price},
                         session=session)
+    audit.update_one({ "audit" : "seats"}, { "$inc" : { "count" : 1}}, upsert=True)
     print(count(seat_no, "Paying {} for seat '{}'".format(price, seat_str)))
 
     return delay_period
@@ -62,12 +101,18 @@ if __name__ == "__main__":
     database = client["PYTHON_TXNS_EXAMPLE"]
     payments_collection = database["payments"]
     seats_collection = database["seats"]
+    audit_collection = database["audit"]
+    audit_collection.drop() # clear out old data
+    seats_collection.drop()
+    payments_collection.drop()
     print("using collection: {}.{}".format(database.name, seats_collection.name))
     print("using collection: {}.{}".format(database.name, payments_collection.name))
+    print("using collection: {}.{}".format(database.name, audit_collection.name))
 
     print("Forcing collection creation (you can't create collections inside a txn)")
     touch(seats_collection)
     touch(payments_collection)
+    touch(audit_collection)
     print("Collections created")
 
     server_info = client.server_info()
@@ -77,6 +122,7 @@ if __name__ == "__main__":
         print("You are running: mongod '{}'".format(server_info['version']))
         print("get the latest version at https://www.mongodb.com/download-center#community")
         sys.exit(1)
+
 
     doc = client.admin.command({"getParameter": 1, "featureCompatibilityVersion": 1})
     if doc["featureCompatibilityVersion"]["version"] != "4.0":
@@ -93,49 +139,36 @@ if __name__ == "__main__":
         print("Using a fixed delay of {}".format(args.delay))
         delay = args.delay
 
-    print("")
-    start = datetime.datetime.utcnow()
+
     total_delay = 0
 
     if args.usetxns:
         print("Using transactions")
 
-    for i in range(1, args.iterations + 1):
-        if args.usetxns:
-            # If you were looping over txns in real-life you would reuse the session for all
-            # the transactions in the loop
-            #
-            s=client.start_session()
-            try:
-                with s.start_transaction():
-                    total_delay = total_delay + txn_sequence(seats_collection, payments_collection, i, delay, s)
-
-            except (pymongo.errors.OperationFailure,
-                    pymongo.errors.ConnectionFailure) as exc:
-                if exc.has_label("TemporaryTxnFailure"):
-                    print(count(i, "{} TemporaryTxnFailure".format( ">" * 20 )))
-                    with s.start_transaction():
-                        total_delay = total_delay + txn_sequence(seats_collection, payments_collection, i, delay, s)
-                else:
-                    raise
-
-            except pymongo.errors.ConnectionFailure as e:
-                print(count(i, "{} ConnectionFailure".format( ">" * 20 )))
-                with s.start_transaction():
-                    total_delay = total_delay + txn_sequence(seats_collection, payments_collection, i, delay, s)
-
-            s.end_session()
-        else:
-            total_delay = total_delay + txn_sequence(seats_collection, payments_collection, i, delay)
-
-    end = datetime.datetime.utcnow()
-    time_delta_delay = datetime.timedelta(seconds=total_delay)
-    duration = end - start
-    actual_time = duration - time_delta_delay
-
+    i = 0
     print("")
-    print("No of transactions: {}".format( i ))
-    print("Elaped time       : {}".format(duration))
-    print("Average txn time  : {}".format( actual_time / i))
-    print("Delay overhead    : {}".format(time_delta_delay))
-    print("Actual time       : {}".format( actual_time))
+    start = datetime.datetime.utcnow()
+    try:
+        while True:
+            if (args.iterations > 0) and (i == args.iterations):
+                break
+
+            i = i + 1
+
+            if args.usetxns:
+                # If you were looping over txns in real-life you would reuse the session for all
+                # the transactions in the loop
+                #
+                with client.start_session() as session:
+                    transaction_function = Transaction_Functor( txn_sequence, seats_collection, payments_collection, audit_collection, i, delay)
+                    total_delay = total_delay + run_transaction_with_retry( transaction_function, session)
+            else:
+                total_delay = total_delay + txn_sequence(seats_collection, payments_collection, audit_collection, i, delay)
+
+    except KeyboardInterrupt:
+
+        end_report(args.usetxns, audit_collection, total_delay)
+        print("Exiting due to interrupt..." )
+        sys.exit(1)
+
+    end_report(args.usetxns, audit_collection, total_delay)

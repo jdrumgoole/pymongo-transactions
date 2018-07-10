@@ -27,8 +27,9 @@ for an overview of the new transactions API in 3.7.0.
 
 The following files can be found in the associated github repo
 
-* __.gitignore__ : Standard __.gitignore__ for Python
+* __.gitignore__ : Standard Github __.gitignore__ for Python
 * __LICENSE__ : Apaches 2.0 (standard Github) license
+* __Makefile__ : Makefile with targets for default operations
 * __setup.sh__ : Configure the enviroment including downloading MongoDB
 etc.
 * __mongod.sh__ : Start and stop MongoDB once setup.sh is run (mongodb.sh
@@ -133,7 +134,8 @@ After ```setup.sh``` has completed you can start and stop the server by
 running ``mongod.sh``  with the ```start``` or ```stop``` parameter. The ``mongod,sh``
 program knows the name of the replica set (**txntest**) and the port number range (27100 to 2701)
 
-to reset your 
+There is a ````Makefile```` with targets for all these operations.
+
 ## Running the transactions example
 
 The transactions example consists of two python
@@ -170,85 +172,72 @@ The ``transactions_main.py`` program knows to use the **txntest** replica set an
 To run the program without transactions you can run it with no arguments:
 
 <pre>
-$ <b>source venv/bin/activate</b>
 $ <b>python transaction_main.py</b>
 using collection: PYTHON_TXNS_EXAMPLE.seats
 using collection: PYTHON_TXNS_EXAMPLE.payments
-Booking seat: '1A'
-Sleeping: 0.9990250744702165
-Paying 500 for seat '1A'
-Booking seat: '2A'
-Sleeping: 0.802693439030369
-Paying 500 for seat '2A'
-Booking seat: '3A'
-Sleeping: 0.8532081718219303
-Paying 500 for seat '3A'
-$
-</pre?
-
-Now run it with transactions turned on. This is a useful test to
-ensure the environment is configured correctly:
-
-```
-(venv) $ python3 transaction_main.py --iterations 3 --usetxns
-using collection: PYTHON_TXNS_EXAMPLE.seats
-using collection: PYTHON_TXNS_EXAMPLE.payments
-Forcing collection creation (you can't create collections inside a txn)
-Collections created
+using collection: PYTHON_TXNS_EXAMPLE.audit
 Using a fixed delay of 1.0
 
-Using transactions
 1. Booking seat: '1A'
 1. Sleeping: 1.000
-1. Paying 430 for seat '1A'
+1. Paying 330 for seat '1A'
 2. Booking seat: '2A'
 2. Sleeping: 1.000
-2. Paying 490 for seat '2A'
+2. Paying 450 for seat '2A'
 3. Booking seat: '3A'
 3. Sleeping: 1.000
-3. Paying 320 for seat '3A'
+3. Paying 490 for seat '3A'
+4. Booking seat: '4A'
+4. Sleeping: 1.000
+^C
+</pre>
 
-No of transactions: 3
-Elaped time       : 0:00:03.026337
-Average txn time  : 0:00:00.008779
-Delay overhead    : 0:00:03
-Actual time       : 0:00:00.026337
-(venv) $
-```
+the program runs a function called ````txn_sequence()```` which books a seat on a plane
+by adding documents to three collections. First it adds the seat allocation to the ```seats_collection```, then
+it adds a payment to the ```payments_collection``` finally it updates an audit count in the ```audit_collection```. 
+(This is a much simplified booking process used purely for illustration).
+
+The default is to run the program without using transactions. To use transactions we have to add the command line flag
+```--usetxns```. Run this to test that you are running MongoDB 4.0 and that the correct feature 
+[featureCompatibility](https://docs.mongodb.com/manual/reference/command/setFeatureCompatibilityVersion/) is
+configured (it must be set to 4.0). If you install MongoDB 4.0 over an existing ```/data``` directory containing 3.6
+databases then featureCompatibility will be set to 3.6 by default and transactions will not be available.```
 
 To actually see the effect of transactions we need to watch what is
 happening inside the collections ```PYTHON_TXNS_EXAMPLE.seats``` and ```
 PYTHON_TXNS_EXAMPLE.payments```.
 
-We can do this with ```watch_collection.py```. The uses [MongoDB
+We can do this with ```watch_transactions.py```. The uses [MongoDB
 change streams](https://docs.mongodb.com/manual/changeStreams/)
 to see whats happening inside a collection in real-time. We need run
 two of these in parallel so its best to line them up side by side.
 
-here is the ```watch_collection.py``` program:
+here is the ```watch_transactions.py``` program:
 
-```
-$ python watch_collection.py
-usage: watch_collection.py [-h] [--host HOST] [--watch WATCH]
+<pre>
+$ <b>python watch_transactions.py -h</b>
+usage: watch_transactions.py [-h] [--host HOST] [--collection COLLECTION]
 
 optional arguments:
-  -h, --help              show this help message and exit
-  --host HOST          mongodb URI for connecting to server [default:
-                                 mongodb://localhost:27017/?replicaSet=txntest]
-  --watch WATCH     Watch <database.colection> [default: test.test]
-```
+  -h, --help            show this help message and exit
+  --host HOST           mongodb URI for connecting to server [default:
+                        mongodb://localhost:27100/?replicaSet=txntest]
+  --collection COLLECTION
+                        Watch <database.collection> [default:
+                        PYTHON_TXNS_EXAMPLE.seats_collection]
+</pre>
   
 We need to watch each collection so in each window start the watcher.
 
 Window 1:
 ```
-$ python watch_collection.py --watch PYTHON_TXNS_EXAMPLE.seats
+$ python watch_transactions.py --watch PYTHON_TXNS_EXAMPLE.seats
 Watching: PYTHON_TXNS_EXAMPLE.seats
 ```
 
 Window 2:
 ```
-$ python watch_collection.py --watch PYTHON_TXNS_EXAMPLE.payments
+$ python watch_transactions.py --watch PYTHON_TXNS_EXAMPLE.payments
 Watching: PYTHON_TXNS_EXAMPLE.payments
 ```
 
@@ -256,34 +245,59 @@ Watching: PYTHON_TXNS_EXAMPLE.payments
 
 Lets run the code without transactions first. If you examine the
 ```transaction_main.py``` code you will see a function
-``txn_sequence``.
+``book_seats``.
 
-```
-def txn_sequence(seats, payments, seat_no, delay_range, session=None):
+<pre>
+
+def <b>book_seat</b>(seats, payments, audit, seat_no, delay_range, session=None):
+    '''
+    Run two inserts in sequence.
+    If session is not None we are in a transaction
+
+    :param seats: seats collection
+    :param payments: payments colection
+    :param seat_no: the number of the seat to be booked (defaults to row A)
+    :param delay_range: A tuple indicating a random delay between two ranges or a single float fixed delay
+    :param session: Session object required by a MongoDB transaction
+    :return: the delay_period for this transaction
+    '''
     price = random.randrange(200, 500, 10)
-    seat_str = "{}A".format(seat_no)
-    print(count( i, "Booking seat: '{}'".format(seat_str)))
-    seats.insert_one({"flight_no": "EI178", "seat": seat_str, "date": datetime.datetime.utcnow()}, session=session)
-
     if type(delay_range) == tuple:
         delay_period = random.uniform(delay_range[0], delay_range[1])
     else:
         delay_period = delay_range
 
+    # Book Seat
+    seat_str = "{}A".format(seat_no)
+    print(count( i, "Booking seat: '{}'".format(seat_str)))
+    seats.insert_one({"flight_no" : "EI178",
+                      "seat"      : seat_str,
+                      "date"      : datetime.datetime.utcnow()},
+                     session=session)
     print(count( seat_no, "Sleeping: {:02.3f}".format(delay_period)))
+    #pay for seat
     time.sleep(delay_period)
-
-    payments.insert_one({"flight_no": "EI178", "seat": seat_str, "date": datetime.datetime.utcnow(), "price": price},
+    payments.insert_one({"flight_no" : "EI178",
+                         "seat"      : seat_str,
+                         "date"      : datetime.datetime.utcnow(),
+                         "price"     : price},
                         session=session)
+    audit.update_one({ "audit" : "seats"}, { "$inc" : { "count" : 1}}, upsert=True)
     print(count(seat_no, "Paying {} for seat '{}'".format(price, seat_str)))
 
     return delay_period
-```
+
+</pre>
 
 This program emulates a very simplified airline booking with a seat
 being allocated and then paid for. These happen at different times and
 we emulate this by inserting a random delay (the default is between 1
 and 3 seconds).
+
+Now with the two ```watch_transactions.py``` scripts running for ```seats_collection``` and ```payments_collection```
+we can run ```transactions_main.py``` first with the default settings and then with ```--usetxns```.
+
+
 
 If we run the program without transactions then we will see these
 delays reported by the ```watch_transactions.py``` programs.

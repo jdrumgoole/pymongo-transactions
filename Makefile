@@ -12,3 +12,9 @@ stop:
 
 killer:
 	python kill_primary.py
+
+watch_seats:
+	python watch_transactions.py --collection seats
+
+watch_payments:
+	python watch_transactions.py --collection payments

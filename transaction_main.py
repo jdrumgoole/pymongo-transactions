@@ -9,24 +9,23 @@ import datetime
 import time
 import sys
 import random
+import pymongo
 import pymongo.errors
-
 
 from transaction_retry import Transaction_Functor, run_transaction_with_retry, commit_with_retry
 
 def count(i,s):
     return "{}. {}".format(i,s)
 
-def touch(collection):
+def create(database, collection_name):
     """
-    Force creation of a replica set by creating and deleting a doc.
-    :param collection:
-    :return collection:
+    Force creation of a collection.
+    :param database: a MongoDB database object
+    :param collection_name: the name of the new collection
+    :return collection: a MongoDB collection
     """
-    doc={}
-    collection.insert_one(doc)
-    collection.delete_one(doc)
-    return collection
+
+    return pymongo.collection.Collection(database=database, name=collection_name, create=True)
 
 
 def end_report(usetxns, audit_collection, total_delay):
@@ -46,13 +45,14 @@ def end_report(usetxns, audit_collection, total_delay):
     print("Delay overhead          : {}".format(time_delta_delay))
     print("Actual time             : {}".format( actual_time))
 
-def txn_sequence(seats, payments, audit, seat_no, delay_range, session=None):
+def book_seat(seats, payments, audit, seat_no, delay_range, session=None):
     '''
-    Run two inserts in sequence.
+    Run three inserts in sequence.
     If session is not None we are in a transaction
 
     :param seats: seats collection
     :param payments: payments colection
+    :param audit: audit collection
     :param seat_no: the number of the seat to be booked (defaults to row A)
     :param delay_range: A tuple indicating a random delay between two ranges or a single float fixed delay
     :param session: Session object required by a MongoDB transaction
@@ -102,18 +102,20 @@ if __name__ == "__main__":
     payments_collection = database["payments"]
     seats_collection = database["seats"]
     audit_collection = database["audit"]
-    audit_collection.drop() # clear out old data
-    seats_collection.drop()
     payments_collection.drop()
+    seats_collection.drop()
+    audit_collection.drop()
+
+    if args.usetxns:
+        print("Forcing collection creation (you can't create collections inside a txn)")
+        seats_collection    = create(database, "seats")
+        payments_collection = create(database, "payments")
+        audit_collection    = create(database, "audit")
+        print("Collections created")
+
     print("using collection: {}.{}".format(database.name, seats_collection.name))
     print("using collection: {}.{}".format(database.name, payments_collection.name))
     print("using collection: {}.{}".format(database.name, audit_collection.name))
-
-    print("Forcing collection creation (you can't create collections inside a txn)")
-    touch(seats_collection)
-    touch(payments_collection)
-    touch(audit_collection)
-    print("Collections created")
 
     server_info = client.server_info()
     major_version = int(server_info['version'].partition(".")[0])
@@ -160,10 +162,10 @@ if __name__ == "__main__":
                 # the transactions in the loop
                 #
                 with client.start_session() as session:
-                    transaction_function = Transaction_Functor( txn_sequence, seats_collection, payments_collection, audit_collection, i, delay)
+                    transaction_function = Transaction_Functor( book_seat, seats_collection, payments_collection, audit_collection, i, delay)
                     total_delay = total_delay + run_transaction_with_retry( transaction_function, session)
             else:
-                total_delay = total_delay + txn_sequence(seats_collection, payments_collection, audit_collection, i, delay)
+                total_delay = total_delay + book_seat(seats_collection, payments_collection, audit_collection, i, delay)
 
     except KeyboardInterrupt:
 

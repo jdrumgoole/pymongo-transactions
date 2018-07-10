@@ -6,6 +6,11 @@ i.e.
 
 mlaunch list --verbose > mlaunch.procs
 
+We expect to run this locally so we change electionTimeoutMillis to 500ms down from
+its default of 10000ms.
+
+@Author: Joe.Drumgoole@mongodb.com
+
 """
 import os
 import argparse
@@ -33,10 +38,10 @@ if __name__ == "__main__":
                         help="MongoDB URI [default: %(default)s]")
     parser.add_argument("--delay", default=1.0, type=float,
                         help="break between kill primary [default: %(default)s]")
-    parser.add_argument('--iterate', default=1, type=int, help="Interate N times, 0 means iterate forever [default: %(default)s]")
+    parser.add_argument('--iterate', default=0, type=int, help="Interate N times, 0 means iterate forever [default: %(default)s]")
     parser.add_argument('--force', default=False, action="store_true", help="Force shutdown of primary [default: %(default)s]")
     parser.add_argument('--procfile',help="File to read process IDs from [default: %(default)s]")
-    parser.add_argument('--electiontimeout', type=int, default=10000, help="Election timeout in MS [default: %(default)s]")
+    parser.add_argument('--electiontimeout', type=int, default=500, help="Election timeout in MS [default: %(default)s]")
     args = parser.parse_args()
 
     client = pymongo.MongoClient(host=args.host)
@@ -106,5 +111,6 @@ if __name__ == "__main__":
             print(count(loop_count, "Sleeping: {}".format(args.delay)))
             time.sleep(args.delay)
     except KeyboardInterrupt :
-        print("exiting...")
         system( "./mongod.sh stop")
+        print("exiting...")
+

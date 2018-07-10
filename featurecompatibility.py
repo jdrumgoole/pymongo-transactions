@@ -33,7 +33,7 @@ if __name__ == "__main__":
     c = pymongo.MongoClient(args.host)
 
     doc = c.admin.command({"getParameter": 1, "featureCompatibilityVersion": 1})
-    print("Old featureCompatibilityVersion: '{}'".format(doc["featureCompatibilityVersion"]["version"]))
+    print("Current featureCompatibilityVersion: '{}'".format(doc["featureCompatibilityVersion"]["version"]))
 
     if args.feature_version:
         c.admin.command({"setFeatureCompatibilityVersion": args.feature_version})

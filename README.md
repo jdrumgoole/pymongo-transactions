@@ -342,7 +342,9 @@ Now neither the seat nor the payment appear in the change streams unlike the fir
 This is where transactions shine in world where all or nothing is the watchword. We never want to keeps seats allocated 
 unless they are paid for. 
 
-Now if we run the same program with the ```--usetxns``` we will see
-that the change streams become synchronised because both collections
-only see the changes when the `end_transaction()` call happens. In
-python the ```with``` clause ensures this happens.
+## What happens during elections?
+
+As MongoDB is a distributed database we have to expect that occasionally the network will interrupt a write
+normally this happens during an election where one node takes over from another to become the primary node
+in a replica set.
+

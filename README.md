@@ -23,12 +23,12 @@ the code in ``transactions_main.py`` is built directly using the MongoDB Python 
 See the section on [client sessions](https://api.mongodb.com/python/current/api/pymongo/client_session.html)
 for an overview of the new transactions API in 3.7.0.
 
-## Configure the Environment
+## Setting up your environment
 
 The following files can be found in the associated github repo, [pymongo-transactions.](https://github.com/jdrumgoole/pymongo-transactions)
 you can clone this repo and work alongside us during this blog post (please file any problems on the Issues tab for the repo)
 
-We assume for all that follows that you have Python 3.6 correctly installed and on your path.
+We assume for all that follows that you have [Python 3.6](https://www.python.org/downloads/) or greater correctly installed and on your path.
 
 * __.gitignore__ : Standard Github __.gitignore__ for Python
 * __LICENSE__ : Apaches 2.0 (standard Github) license
@@ -48,7 +48,6 @@ of a transaction.
 * __featurecompatibility.py__ : check and or set feature compatibility for
   th database (needs to be set to "4.0" for transactions)
 
-##Setting up your environment
 
 The ```transactions/setups.sh``` will setup your enviroment
 including:

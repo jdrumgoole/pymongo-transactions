@@ -1,10 +1,10 @@
 # Introduction to MongoDB transactions in Python 
 
-Multi-document transactions landed in 
-[MongoDB 4.0](https://www.mongodb.com/download-center#community). MongoDB has always
+Multi-document transactions arrived in 
+[MongoDB 4.0](https://www.mongodb.com/download-center#community) which is now shipping. MongoDB has always
 been transactional around updates to a single document but with 
 multi-document transctions we can now wrap a set of database operations
-inside a begin and end transaction call. This ensure that even with inserts and/or
+inside a begin and commit transaction call. This ensures that even with inserts and/or
 updates happening in multiple collections the external view of the data meets [ACID](https://en.wikipedia.org/wiki/ACID) constraints. 
 
 To demonstrae transactions in action we use a trivial example app that emulates a flight 
@@ -25,7 +25,10 @@ for an overview of the new transactions API in 3.7.0.
 
 ## Configure the Environment
 
-The following files can be found in the associated github repo
+The following files can be found in the associated github repo, [pymongo-transactions.](https://github.com/jdrumgoole/pymongo-transactions)
+you can clone this repo and work alongside us during this blog post (please file any problems on the Issues tab for the repo)
+
+We assume for all that follows that you have Python 3.6 correctly installed and on your path.
 
 * __.gitignore__ : Standard Github __.gitignore__ for Python
 * __LICENSE__ : Apaches 2.0 (standard Github) license
@@ -44,6 +47,8 @@ primary on a regular basis. Used to emulate an election happening in the middle
 of a transaction.
 * __featurecompatibility.py__ : check and or set feature compatibility for
   th database (needs to be set to "4.0" for transactions)
+
+##Setting up your environment
 
 The ```transactions/setups.sh``` will setup your enviroment
 including:
@@ -230,18 +235,20 @@ optional arguments:
 We need to watch each collection so in each window start the watcher.
 
 Window 1:
-```
-$ python watch_transactions.py --watch PYTHON_TXNS_EXAMPLE.seats
-Watching: PYTHON_TXNS_EXAMPLE.seats
-```
+<pre>
+$ <b>python watch_transactions.py --watch seats</b>
+Watching: seats
+...
+</pre>
 
 Window 2:
-```
-$ python watch_transactions.py --watch PYTHON_TXNS_EXAMPLE.payments
-Watching: PYTHON_TXNS_EXAMPLE.payments
-```
+<pre>
+$ <b>python watch_transactions.py --watch payments</b>
+Watching: payments
+...
+</pre>
 
-## What Happens when you use transactions
+## What Happens when you run without transactions?
 
 Lets run the code without transactions first. If you examine the
 ```transaction_main.py``` code you will see a function
@@ -290,17 +297,51 @@ def <b>book_seat</b>(seats, payments, audit, seat_no, delay_range, session=None)
 </pre>
 
 This program emulates a very simplified airline booking with a seat
-being allocated and then paid for. These happen at different times and
-we emulate this by inserting a random delay (the default is between 1
-and 3 seconds).
+being allocated and then paid for. These are often seperated by a reasonable time frame (e.f. seat allocation vs external
+credit card validation and anti-fraud check) and
+we emulate this by inserting a random delay. The default is  1 second.
+
 
 Now with the two ```watch_transactions.py``` scripts running for ```seats_collection``` and ```payments_collection```
-we can run ```transactions_main.py``` first with the default settings and then with ```--usetxns```.
+we can run ```transactions_main.py``` as follows:
+<pre>
+$ <b>python transaction_main.py --delay 2</b>
+</pre>
 
+The first run is with no transactions enabled. We have added a delay of 2 seconds
+between the seat and payment insert operations in ``transactions_main.py`` so we can see the delay clearly. 
 
+The bottom window shows ```transactions_main.py``` running. On the top left we are watching the inserts to the
+seats collection. On the top right we are watching inserts to the payments collection. 
 
-If we run the program without transactions then we will see these
-delays reported by the ```watch_transactions.py``` programs.
+![Watching inserts without using transactions](http://developer-advocacy-public.s3.amazonaws.com/blog/txn_blog_post_notxns.png)
+
+We can see that the payments window lags the seats window as the watchers only update when the insert is complete.
+Thus seats sold cannot be easily reconciled with corresponding payments. If after the third seat has been booked we CTRL-C
+the program we can see that the program exits before writing the payment. This is reflected in the change-stream for
+payments collection which only shows payments for seat 1A and 2A versus seat allocations for 1A, 2A and 3A. 
+
+If we want payments and seats to be instantly reconcliable and consistent we must execute the inserts inside a
+transaction.
+
+## What happens when you run with Transactions?
+
+Now lets run the same system with ```--usetxns``` enabled. 
+
+<pre>
+$ <b>python transaction_main.py --delay 2 --usetxns</b>
+</pre>
+
+We run with the exact same setup but now set ```--usetxns```.
+
+![Watching inserts without using transactions](http://developer-advocacy-public.s3.amazonaws.com/blog/txn_blog_post_txns.png)
+
+Note now how the change streams are interlocked and are updated in parallel. This is because all the updates only
+become visible when the transaction is committed. Note how we aborted the third transaction by hitting CTRL-C.
+Now neither the seat nor the payment appear in the change streams unlike the first example where the seat went through.
+
+This is where transactions shine in world where all or nothing is the watchword. We never want to keeps seats allocated 
+unless they are paid for. 
 
 Now if we run the same program with the ```--usetxns``` we will see
 that the change streams become synchronised because both collections

@@ -79,8 +79,9 @@ def book_seat(seats, payments, audit, seat_no, delay_range, session=None):
                          "date"      : datetime.datetime.utcnow(),
                          "price"     : price},
                         session=session)
-    audit.update_one({ "audit" : "seats"}, { "$inc" : { "count" : 1}}, upsert=True)
     print(count(seat_no, "Paying {} for seat '{}'".format(price, seat_str)))
+    audit.update_one({ "audit" : "seats"}, { "$inc" : { "count" : 1}}, upsert=True)
+
 
     return delay_period
 

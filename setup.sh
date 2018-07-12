@@ -27,7 +27,7 @@ fi
 echo "Checking python version"
 PYTHON_VERSION=`python3 -V 2>&1 |cut -f 2 -d ' '| cut -f 1 -d '.'` 2>&1 > /dev/null
 VER=`python3 -V 2>&1`
-if  [ "$PYTHON_VERSION" == "3" ] ;then
+if  [ "$PYTHON_VERSION" = "3" ] ;then
     echo "Running python $VER"
 else
     echo "Warning : This code has only been tested with Python 3.6"

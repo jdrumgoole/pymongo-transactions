@@ -130,10 +130,11 @@ if __name__ == "__main__":
     doc = client.admin.command({"getParameter": 1, "featureCompatibilityVersion": 1})
     if doc["featureCompatibilityVersion"]["version"] != "4.0":
         print("Your mongod is set to featureCompatibility: {}".format(doc["featureCompatibilityVersion"]["version"]))
-        print("(This happens if you run mongod and point it at data directory created with")
+        print("(This happens if you run mongod 4.0 and point it at data directory created with")
         print(" an older version of mongod)")
         print("You need to set featureCompatibility to '4.0'")
-        print("run 'python featurecompatbility.py --feature_version 4.0'")
+        print("run 'python3 featurecompatibility.py --feature_version 4.0'")
+        sys.exit(1)
 
     if args.randdelay:
         delay = (args.randdelay[0], args.randdelay[1])

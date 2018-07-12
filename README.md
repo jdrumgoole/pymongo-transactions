@@ -333,7 +333,7 @@ $ <b>python transaction_main.py --delay 2 --usetxns</b>
 
 We run with the exact same setup but now set ```--usetxns```.
 
-![Watching inserts without using transactions](http://developer-advocacy-public.s3.amazonaws.com/blog/txn_blog_post_txns.png)
+![Watching inserts using transactions](http://developer-advocacy-public.s3.amazonaws.com/blog/txn_blog_post_txns.png)
 
 Note now how the change streams are interlocked and are updated in parallel. This is because all the updates only
 become visible when the transaction is committed. Note how we aborted the third transaction by hitting CTRL-C.

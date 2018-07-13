@@ -4,23 +4,35 @@
 # @author: Joe.Drumgoole@mongodb.com
 #
 
-install:version_check venv pip_reqs init_server
+install:version_check virtualenv pip_reqs init_server
 	@echo "Transactions test environment ready"
 
 init_server:
-	mlaunch init --port 27100 --replicaset --name "txntest"
+	@if [ ! -d "data" ];then\
+		echo "Making new mlaunch environment in 'data'";\
+		mlaunch init --port 27100 --replicaset --name "txntest";\
+	fi
 
 start_server:
-	sh mongod.sh start
+	@if [ -d "data" ];then\
+		echo "Starting mongod replica set";\
+		sh mongod.sh start;\
+	fi
 
 stop_server:
-	sh mongod.sh stop
+	@if [ -d "data" ];then\
+		echo "Starting mongod replica set";\
+		sh mongod.sh stop;\
+	fi
 
 pip_reqs:
 	(source venv/bin/activate && pip3 install -r requirements.txt)
 
-venv:
-	python3 -m venv venv
+virtualenv:
+	@if [ ! -d "venv" ];then\
+		echo "making virtualenv in 'venv'";\
+		python3 -m venv venv;\
+	fi
 
 #mtools dir and virtualenv
 clean:

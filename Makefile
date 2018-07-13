@@ -3,7 +3,7 @@
 #
 # @author: Joe.Drumgoole@mongodb.com
 #
-PIPBIN=`which pip`
+PIPBIN=`which pip3`
 
 install:version_check virtualenv pip_reqs init_server
 	@echo "Transactions test environment ready"
@@ -27,12 +27,15 @@ stop_server:
 	fi
 
 pip_check:
-	@if [ "${PIPBIN}" = "" ];then\
-		echo "pip is not installed. Please install using instructions from:";\
+	@echo "Checking that pip3 is installed";\
+	if [ "${PIPBIN}" = "" ];then\
+		echo "pip3 is not installed. Please install using instructions from:";\
 		echo "https://pip.pypa.io/en/stable/installing/";\
-		python3 -m webbrowser -t  "https://pip.pypa.io/en/stable/installing/";\
+		exit 1;\
 	fi
-pip_reqs:
+
+pip_reqs: pip_check
+	@echo "Installing required python tools and packages"
 	(source venv/bin/activate && pip3 install -r requirements.txt)
 
 virtualenv:

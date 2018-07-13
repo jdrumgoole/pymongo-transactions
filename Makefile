@@ -8,21 +8,22 @@ PIPBIN=`which pip`
 install:version_check virtualenv pip_reqs init_server
 	@echo "Transactions test environment ready"
 
-init_server:
-	@if [ ! -d "data" ];then\
+init_server: pip_check
+	@echo "Setting up replica set";\
+	if [ -d "data" ];then\
+		echo "Already configured in 'data'";\
+	else\
 		echo "Making new mlaunch environment in 'data'";\
 		mlaunch init --port 27100 --replicaset --name "txntest";\
 	fi
 
-start_server:
+start_server: pip_check
 	@if [ -d "data" ];then\
-		echo "Starting mongod replica set";\
 		sh mongod.sh start;\
 	fi
 
-stop_server:
+stop_server:pip_check
 	@if [ -d "data" ];then\
-		echo "Starting mongod replica set";\
 		sh mongod.sh stop;\
 	fi
 
@@ -32,7 +33,9 @@ pip_check:
 		echo "https://pip.pypa.io/en/stable/installing/";\
 		python3 -m webbrowser -t  "https://pip.pypa.io/en/stable/installing/";\
 	fi
-pip_reqs:
+
+
+pip_reqs: pip_check
 	(source venv/bin/activate && pip3 install -r requirements.txt)
 
 virtualenv:
@@ -42,14 +45,9 @@ virtualenv:
 	fi
 
 #mtools dir and virtualenv
-clean:
-	rm -rf data venv
+clean: stop_server
+	rm -rf data venv req_installed
 
-start:
-	sh mongod.sh start
-
-stop:
-	sh mongod.sh stop
 
 killer:
 	python3 kill_primary.py
@@ -66,9 +64,9 @@ version_check:
 watch_seats:
 	python3 watch_transactions.py --collection seats
 
-watch_payments:
+watch_payments: 
 	python3 watch_transactions.py --collection payments
 
 download:
-	echo "You can download the latest version of MongoDB from https://www.mongodb.com/download-center?jmp=nav#community"
-	python -m webbrowser "https://www.mongodb.com/download-center?jmp=nav#community"
+	@echo "You can download the latest version of MongoDB from https://www.mongodb.com/download-center?jmp=nav#community"
+	@python -m webbrowser "https://www.mongodb.com/download-center?jmp=nav#community"

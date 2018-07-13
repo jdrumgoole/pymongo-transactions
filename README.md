@@ -12,13 +12,13 @@ booking for an online airline application. In this simplified booking we need to
 operations:
 
 1. Allocate a seat (**seat_collection**)
-2. Pay for a the seat (**payment_collection**)
-3. Update the count of allocated seats and transactions (**audit_collection**)
+2. Pay for the seat (**payment_collection**)
+3. Update the count of allocated seats and sales (**audit_collection**)
 
 For this application we will use three seperate collections for these documents as detailed in bold above. 
 The code in ```transactions_main.py``` updates these collections in serial unless the ```--usetxns``` argument
 is used. We then wrap the complete operation inside an ACID transaction. 
-the code in ``transactions_main.py`` is built directly using the MongoDB Python driver 
+The code in ``transactions_main.py`` is built directly using the MongoDB Python driver 
 ([Pymongo 3.7.0](https://api.mongodb.com/python/current/)).
 See the section on [client sessions](https://api.mongodb.com/python/current/api/pymongo/client_session.html)
 for an overview of the new transactions API in 3.7.0.
@@ -26,7 +26,7 @@ for an overview of the new transactions API in 3.7.0.
 ## Setting up your environment
 
 The following files can be found in the associated github repo, [pymongo-transactions.](https://github.com/jdrumgoole/pymongo-transactions)
-you can clone this repo and work alongside us during this blog post (please file any problems on the Issues tab for the repo)
+you can clone this repo and work alongside us during this blog post (please file any problems on the Issues tab for the repo).
 
 We assume for all that follows that you have [Python 3.6](https://www.python.org/downloads/) or greater correctly installed and on your path.
 
@@ -40,13 +40,13 @@ start|stop).
 * __transaction_main.py__ : Run a set of writes with and without transactions run 
 ```python transactions_main.py -h``` for help.
 * __transactions_retry.py__ : The file containing the transactions retry functions.
-* __watch_transactions.py__ : Use a mongodb changstream to watch collections
+* __watch_transactions.py__ : Use a mongodb change stream to watch collections
 as they change when transactions_main.py is running
 * __kill_primary.py__ : Starts a MongoDB replica set (on port 7100) and kills the
 primary on a regular basis. Used to emulate an election happening in the middle
 of a transaction.
 * __featurecompatibility.py__ : check and or set feature compatibility for
-  th database (needs to be set to "4.0" for transactions)
+  the database (needs to be set to "4.0" for transactions)
 
 
 The ```transactions/setups.sh``` will setup your enviroment

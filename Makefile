@@ -3,7 +3,7 @@
 #
 # @author: Joe.Drumgoole@mongodb.com
 #
-PIPBIN=`which xfv 2>/dev/null`
+PIPBIN=`which pip3 2>/dev/null`
 
 install:version_check virtualenv pip_reqs init_server
 	@echo "Transactions test environment ready"

@@ -5,6 +5,7 @@
 #
 PIPBIN=`which pip3 2>/dev/null`
 MONGODBBIN=/usr/local/mongodb/bin
+PYTHON=python3
 
 install:version_check virtualenv pip_reqs init_server
 	@echo "Transactions test environment ready"
@@ -39,7 +40,7 @@ pip_check:
 	@if [ "${PIPBIN}" = "" ];then\
 		echo "pip3 is not installed. Please install using instructions from:";\
 		echo "https://pip.pypa.io/en/stable/installing/";\
-		python3 -m webbrowser "https://pip.pypa.io/en/stable/installing/";\
+		${PYTHON} -m webbrowser "https://pip.pypa.io/en/stable/installing/";\
 		exit 1;\
 	fi
 
@@ -50,7 +51,7 @@ pip_reqs: pip_check virtualenv
 virtualenv:
 	@if [ ! -d "venv" ];then\
 		echo "making virtualenv in 'venv'";\
-		python3 -m venv venv;\
+		${PYTHON} -m venv venv;\
 	fi
 
 #mtools dir and virtualenv
@@ -59,22 +60,22 @@ clean: stop_server
 
 
 killer:
-	python3 kill_primary.py
+	${PYTHON} kill_primary.py
 
 notxns:
-	python3 transaction_main.py
+	${PYTHON} transaction_main.py
 
 usetxns:
-	python3 transaction_main.py --usetxns
+	${PYTHON} transaction_main.py --usetxns
 
 version_check:
-	python3 version_check.py 3
+	${PYTHON} version_check.py 3
 
 watch_seats:
-	python3 watch_transactions.py --collection seats
+	${PYTHON} watch_transactions.py --collection seats
 
 watch_payments:
-	python3 watch_transactions.py --collection payments
+	${PYTHON} watch_transactions.py --collection payments
 
 download:
 	@echo "You can download the latest version of MongoDB from https://www.mongodb.com/download-center?jmp=nav#community"

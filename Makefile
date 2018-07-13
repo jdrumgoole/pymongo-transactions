@@ -4,6 +4,7 @@
 # @author: Joe.Drumgoole@mongodb.com
 #
 PIPBIN=`which pip3 2>/dev/null`
+MONGODBBIN=/usr/local/mongodb/bin
 
 install:version_check virtualenv pip_reqs init_server
 	@echo "Transactions test environment ready"
@@ -14,7 +15,7 @@ init_server: pip_check
 		echo "Already configured in 'data'";\
 	else\
 		echo "Making new mlaunch environment in 'data'";\
-		mlaunch init --port 27100 --replicaset --name "txntest";\
+		mlaunch init --binarypath ${MONGODBBIN} --port 27100 --replicaset --name "txntest";\
 	fi
 
 start_server:

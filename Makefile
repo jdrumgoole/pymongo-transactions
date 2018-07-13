@@ -17,19 +17,25 @@ init_server: pip_check
 		mlaunch init --port 27100 --replicaset --name "txntest";\
 	fi
 
-start_server: pip_check
+start_server:
+	@echo "Starting MongoDB replica set"
 	@if [ -d "data" ];then\
-		sh mongod.sh start;\
+		mlaunch start;\
+	else\
+		echo "No mlaunch data, run make init_server";\
 	fi
 
-stop_server:pip_check
+stop_server:
+	@echo "Stopping MongoDB replica set"
 	@if [ -d "data" ];then\
-		sh mongod.sh stop;\
+		mlaunch stop;\
+	else\
+		echo "No mlaunch data, run make init_server";\
 	fi
 
 pip_check:
 	@echo "Checking that pip3 is installed";\
-	if [ "${PIPBIN}" = "" ];then\
+	@if [ "${PIPBIN}" = "" ];then\
 		echo "pip3 is not installed. Please install using instructions from:";\
 		echo "https://pip.pypa.io/en/stable/installing/";\
 		python3 -m webbrowser "https://pip.pypa.io/en/stable/installing/";\
@@ -38,7 +44,7 @@ pip_check:
 
 pip_reqs: pip_check virtualenv
 	@echo "Installing required python tools and packages"
-	(. venv/bin/activate && pip3 install -r requirements.txt)
+	@(. venv/bin/activate && pip3 install -r requirements.txt)
 
 virtualenv:
 	@if [ ! -d "venv" ];then\

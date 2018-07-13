@@ -64,9 +64,9 @@ version_check:
 watch_seats:
 	python3 watch_transactions.py --collection seats
 
-watch_payments: 
+watch_payments:
 	python3 watch_transactions.py --collection payments
 
 download:
 	@echo "You can download the latest version of MongoDB from https://www.mongodb.com/download-center?jmp=nav#community"
-	@python -m webbrowser "https://www.mongodb.com/download-center?jmp=nav#community"
+	@python -m webbrowser "https://www.mongodb.com/download-center#production"

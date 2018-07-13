@@ -34,7 +34,7 @@ stop_server:
 	fi
 
 pip_check:
-	@echo "Checking that pip3 is installed";\
+	@echo "Checking that pip3 is installed"
 	@if [ "${PIPBIN}" = "" ];then\
 		echo "pip3 is not installed. Please install using instructions from:";\
 		echo "https://pip.pypa.io/en/stable/installing/";\

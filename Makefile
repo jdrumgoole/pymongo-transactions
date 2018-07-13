@@ -3,6 +3,7 @@
 #
 # @author: Joe.Drumgoole@mongodb.com
 #
+PIPBIN=`which pip`
 
 install:version_check venv pip_reqs init_server
 	@echo "Transactions test environment ready"

@@ -49,9 +49,10 @@ pip_reqs: pip_check virtualenv
 	@(. venv/bin/activate && pip3 install -r requirements.txt)
 
 virtualenv:
+	pip3 install virtualenv
 	@if [ ! -d "venv" ];then\
 		echo "making virtualenv in 'venv'";\
-		${PYTHON} -m venv venv;\
+		virtualenv venv;\
 	fi
 
 #mtools dir and virtualenv

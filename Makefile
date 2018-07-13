@@ -36,9 +36,9 @@ pip_check:
 		exit 1;\
 	fi
 
-pip_reqs: pip_check
+pip_reqs: pip_check virtualenv
 	@echo "Installing required python tools and packages"
-	(source venv/bin/activate && pip3 install -r requirements.txt)
+	(. venv/bin/activate && pip3 install -r requirements.txt)
 
 virtualenv:
 	@if [ ! -d "venv" ];then\

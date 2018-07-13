@@ -26,6 +26,12 @@ stop_server:
 		sh mongod.sh stop;\
 	fi
 
+pip_check:
+	@if [ "${PIPBIN}" = "" ];then\
+		echo "pip is not installed. Please install using instructions from:";\
+		echo "https://pip.pypa.io/en/stable/installing/";\
+		python3 -m webbrowser -t  "https://pip.pypa.io/en/stable/installing/";\
+	fi
 pip_reqs:
 	(source venv/bin/activate && pip3 install -r requirements.txt)
 

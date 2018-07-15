@@ -24,7 +24,12 @@ fi
 #
 # test for python 3.6
 
+if [ ""  = `which python3` ];then
+    echo "Python3 is not on the path. This program has not been tested on Python2"
+fi
+
 echo "Checking python version"
+if !python3 "3.6";then
 PYTHON_VERSION=`python3 -V 2>&1 |cut -f 2 -d ' '| cut -f 1 -d '.'` 2>&1 > /dev/null
 VER=`python3 -V 2>&1`
 if  [ "$PYTHON_VERSION" == "3" ] ;then

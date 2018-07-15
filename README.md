@@ -348,3 +348,5 @@ As MongoDB is a distributed database we have to expect that occasionally the net
 normally this happens during an election where one node takes over from another to become the primary node
 in a replica set.
 
+In order to observe what happens during elections we can use the script ```kill_primary.py```. This script 
+will start a replica-set and continously kill the primary. 

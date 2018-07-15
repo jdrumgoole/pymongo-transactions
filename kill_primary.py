@@ -40,7 +40,7 @@ if __name__ == "__main__":
                         help="break between kill primary [default: %(default)s]")
     parser.add_argument('--iterate', default=0, type=int, help="Interate N times, 0 means iterate forever [default: %(default)s]")
     parser.add_argument('--force', default=False, action="store_true", help="Force shutdown of primary [default: %(default)s]")
-    parser.add_argument('--procfile',help="File to read process IDs from [default: %(default)s]")
+    parser.add_argument('--procfile',help="File to read process IDs from [default: mlaunch.procs]")
     parser.add_argument('--electiontimeout', type=int, default=500, help="Election timeout in MS [default: %(default)s]")
     args = parser.parse_args()
 
@@ -73,6 +73,7 @@ if __name__ == "__main__":
                 print(count(loop_count,"Getting list of mongod processes"))
                 system( "mlaunch list --verbose > mlaunch.procs")
                 procfile="mlaunch.procs"
+                print("Process list written to {}".format(procfile))
             else:
                 procfile=args.procfile
 

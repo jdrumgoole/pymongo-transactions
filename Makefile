@@ -16,7 +16,7 @@ init_server: pip_check
 		echo "Already configured in 'data'";\
 	else\
 		echo "Making new mlaunch environment in 'data'";\
-		. venv/bin/activate && mlaunch init --binarypath ${MONGODBBIN} --port 27100 --replicaset --name "txntest";\
+		. venv/bin/activate && sudo mlaunch init --binarypath ${MONGODBBIN} --port 27100 --replicaset --name "txntest";\
 	fi
 
 start_server:

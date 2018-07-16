@@ -48,7 +48,7 @@ pip_reqs: pip_check virtualenv
 	@echo "Installing required python tools and packages"
 	@. venv/bin/activate && pip install -r requirements.txt
 
-virtualenv:
+virtualenv: pip_check
 	sudo pip install virtualenv
 	@if [ ! -d "venv" ];then\
 		echo "making virtualenv in 'venv'";\

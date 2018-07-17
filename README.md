@@ -4,7 +4,7 @@ Multi-document transactions arrived in
 [MongoDB 4.0](https://www.mongodb.com/download-center#community) which is now shipping. MongoDB has always
 been transactional around updates to a single document but with 
 multi-document transctions we can now wrap a set of database operations
-inside a begin and commit transaction call. This ensures that even with inserts and/or
+inside a *start* and *commit* transaction call. This ensures that even with inserts and/or
 updates happening in multiple collections the external view of the data meets [ACID](https://en.wikipedia.org/wiki/ACID) constraints. 
 
 To demonstrae transactions in action we use a trivial example app that emulates a flight 
@@ -33,10 +33,6 @@ We assume for all that follows that you have [Python 3.6](https://www.python.org
 * __.gitignore__ : Standard Github __.gitignore__ for Python
 * __LICENSE__ : Apaches 2.0 (standard Github) license
 * __Makefile__ : Makefile with targets for default operations
-* __setup.sh__ : Configure the enviroment including downloading MongoDB
-etc.
-* __mongod.sh__ : Start and stop MongoDB once setup.sh is run (mongodb.sh
-start|stop).
 * __transaction_main.py__ : Run a set of writes with and without transactions run 
 ```python transactions_main.py -h``` for help.
 * __transactions_retry.py__ : The file containing the transactions retry functions.
@@ -48,97 +44,25 @@ of a transaction.
 * __featurecompatibility.py__ : check and or set feature compatibility for
   th database (needs to be set to "4.0" for transactions)
 
+The Makefile outlines the operations that are required to set the test
+environment. You will need to install the following pieces of softwaare:
 
-The ```transactions/setups.sh``` will setup your enviroment
-including:
+All the programs in this example use a port range starting at 27100 
+to ensure that this example does not clash with an existing MongoDB installation.
 
-* Downloading and installing [MongoDB 4.0](https://www.mongodb.com/download-center?jmp=nav#community)
-* Setting up a python [virtualenv](https://docs.python.org/3/library/venv.html)
-* Installing the latest version of the Python MongoDB Driver (pymongo 3.7.0)
-* Installing [mtools](https://github.com/rueckstiess/mtools) to allow easy starting of a
-[replica set](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/).
-(transactions require a replica set)
+We recommend you take the following steps to setup your enviroment.
+
+* Set a python [virtualenv](https://docs.python.org/3/library/venv.html)
+* Install the latest version of the Python MongoDB Driver (pymongo 3.7.0)
+* Install[Mtools](https://github.com/rueckstiess/mtools): Which is a set of utiltiies for MongoDB
+. The only Mtools program we will using is [mlaunch](http://blog.rueckstiess.com/mtools/mlaunch.html).
+Which is a easy what to launch a MongoDB replica set (required for transactions)
 * Start a replica set whose name is **txntest**.
 
-All this is achieved by running  ```sh setup.sh``` script. 
 
-<pre>
-<b>$ sh setup.sh</b>
-Download mongodb
---2018-07-09 10:52:09--  https://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-4.0.0.tgz
-Resolving fastdl.mongodb.org... 13.32.67.173, 13.32.67.249, 13.32.67.52, ...
-Connecting to fastdl.mongodb.org|13.32.67.173|:443... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 69563250 (66M) [application/x-gzip]
-Saving to: 'mongodb-osx-ssl-x86_64-4.0.0.tgz'
-
-mongodb-osx-ssl-x86 100%[=====================>]  66.34M  7.06MB/s   in 19s
-
-2018-07-09 10:52:29 (3.46 MB/s) - 'mongodb-osx-ssl-x86_64-4.0.0.tgz' saved [69563250/69563250]
-
-unpack mongodb
-mongodb-osx-x86_64-4.0.0/README
-mongodb-osx-x86_64-4.0.0/THIRD-PARTY-NOTICES
-mongodb-osx-x86_64-4.0.0/MPL-2
-mongodb-osx-x86_64-4.0.0/GNU-AGPL-3.0
-mongodb-osx-x86_64-4.0.0/LICENSE-Community.txt
-mongodb-osx-x86_64-4.0.0/bin/mongodump
-mongodb-osx-x86_64-4.0.0/bin/mongorestore
-mongodb-osx-x86_64-4.0.0/bin/mongoexport
-mongodb-osx-x86_64-4.0.0/bin/mongoimport
-mongodb-osx-x86_64-4.0.0/bin/mongostat
-mongodb-osx-x86_64-4.0.0/bin/mongotop
-mongodb-osx-x86_64-4.0.0/bin/bsondump
-mongodb-osx-x86_64-4.0.0/bin/mongofiles
-mongodb-osx-x86_64-4.0.0/bin/mongoreplay
-mongodb-osx-x86_64-4.0.0/bin/mongod
-mongodb-osx-x86_64-4.0.0/bin/mongos
-mongodb-osx-x86_64-4.0.0/bin/mongo
-mongodb-osx-x86_64-4.0.0/bin/install_compass
-Checking python version
-Running python Python 3.6.5
-setup virtual env in venv
-Collecting mtools
-  Downloading https://files.pythonhosted.org/packages/f2/07/6cad9445d7bf331f21c969f045b1da76cb2e943a51dd0e2eb83f0a6d9fc9/mtools-1.5.1.tar.gz (2.9MB)
-    100% |████████████████████████████████| 2.9MB 564kB/s
-Collecting six (from mtools)
-  Using cached https://files.pythonhosted.org/packages/67/4b/141a581104b1f6397bfa78ac9d43d8ad29a7ca43ea90a2d863fe3056e86a/six-1.11.0-py2.py3-none-any.whl
-Collecting python-dateutil==2.7 (from mtools)
-  Using cached https://files.pythonhosted.org/packages/bc/c5/3449988d33baca4e9619f49a14e28026399b0a8c32817e28b503923a04ab/python_dateutil-2.7.0-py2.py3-none-any.whl
-Installing collected packages: six, python-dateutil, mtools
-  Running setup.py install for mtools ... done
-Successfully installed mtools-1.5.1 python-dateutil-2.7.0 six-1.11.0
-You are using pip version 9.0.3, however version 10.0.1 is available.
-You should consider upgrading via the 'pip install --upgrade pip' command.
-Collecting psutil
-  Using cached https://files.pythonhosted.org/packages/51/9e/0f8f5423ce28c9109807024f7bdde776ed0b1161de20b408875de7e030c3/psutil-5.4.6.tar.gz
-Installing collected packages: psutil
-  Running setup.py install for psutil ... done
-Successfully installed psutil-5.4.6
-You are using pip version 9.0.3, however version 10.0.1 is available.
-You should consider upgrading via the 'pip install --upgrade pip' command.
-Installing pymongo driver
-Collecting https://github.com/mongodb/mongo-python-driver/archive/3.7.0b0.tar.gz
-  Downloading https://github.com/mongodb/mongo-python-driver/archive/3.7.0b0.tar.gz
-     | 686kB 13.4MB/s
-Installing collected packages: pymongo
-  Running setup.py install for pymongo ... done
-Successfully installed pymongo-3.7.0b0
-You are using pip version 9.0.3, however version 10.0.1 is available.
-You should consider upgrading via the 'pip install --upgrade pip' command.
-Initalising replica set
-launching: "mongod" on port 27100
-launching: "mongod" on port 27101
-launching: "mongod" on port 27102
-replica set 'txntest' initialized.
-$
-</pre>
-
-After ```setup.sh``` has completed you can start and stop the server by
-running ``mongod.sh``  with the ```start``` or ```stop``` parameter. The ``mongod,sh``
-program knows the name of the replica set (**txntest**) and the port number range (27100 to 2701)
-
-There is a ````Makefile```` with targets for all these operations.
+There is a ``Makefile``` with targets for all these operations. For those of you on
+platforms without access to Make it should be easy enought to cut and paste
+the commands out of the targets and run them on the command line.
 
 ## Running the transactions example
 
@@ -350,3 +274,107 @@ in a replica set.
 
 In order to observe what happens during elections we can use the script ```kill_primary.py```. This script 
 will start a replica-set and continously kill the primary. 
+
+<pre>
+$ <b>sudo python3 kill_primary.py</b>
+no nodes started.
+Current electionTimeoutMillis: 500
+1. (Re)starting replica-set
+no nodes started.
+1. Getting list of mongod processes
+Process list written to mlaunch.procs
+1. Getting replica set status
+1. Killing primary node: 31029
+1. Sleeping: 1.0
+2. (Re)starting replica-set
+launching: "/usr/local/mongodb/bin/mongod" on port 27101
+2. Getting list of mongod processes
+Process list written to mlaunch.procs
+2. Getting replica set status
+2. Killing primary node: 31045
+2. Sleeping: 1.0
+3. (Re)starting replica-set
+launching: "/usr/local/mongodb/bin/mongod" on port 27102
+3. Getting list of mongod processes
+Process list written to mlaunch.procs
+3. Getting replica set status
+3. Killing primary node: 31137
+3. Sleeping: 1.0
+</pre>
+
+```kill_primary.py``` resets [electionTimeOutMillis](https://docs.mongodb.com/manual/reference/replica-configuration/index.html)
+to 500ms from its default of 10000ms (10 seconds). This allows elections
+to resolve more quickly for the purposes of this test.
+
+
+Once ```kill_primary.py``` is running
+we can start up ```transactions_main.py``` again using the ```--usetxns``` argument.
+
+<pre>
+$ <b>python3 transaction_main.py  --usetxns</b>
+Forcing collection creation (you can't create collections inside a txn)
+Collections created
+using collection: PYTHON_TXNS_EXAMPLE.seats
+using collection: PYTHON_TXNS_EXAMPLE.payments
+using collection: PYTHON_TXNS_EXAMPLE.audit
+Using a fixed delay of 1.0
+Using transactions
+
+1. Booking seat: '1A'
+1. Sleeping: 1.000
+1. Paying 440 for seat '1A'
+Transaction committed.
+2. Booking seat: '2A'
+2. Sleeping: 1.000
+2. Paying 330 for seat '2A'
+Transaction committed.
+3. Booking seat: '3A'
+3. Sleeping: 1.000
+TransientTransactionError, retrying transaction ...
+3. Booking seat: '3A'
+3. Sleeping: 1.000
+3. Paying 240 for seat '3A'
+Transaction committed.
+4. Booking seat: '4A'
+4. Sleeping: 1.000
+4. Paying 410 for seat '4A'
+Transaction committed.
+5. Booking seat: '5A'
+5. Sleeping: 1.000
+5. Paying 260 for seat '5A'
+Transaction committed.
+6. Booking seat: '6A'
+6. Sleeping: 1.000
+TransientTransactionError, retrying transaction ...
+6. Booking seat: '6A'
+6. Sleeping: 1.000
+6. Paying 380 for seat '6A'
+Transaction committed.
+<b>...</b>
+</pre>
+
+As you can see during elections the transaction will be aborted and must
+be retried. IF you look at the ```transaction_rety.py``` code you
+will see how this happens. The first thing to realise is that write operations
+inside a transaction are not retried even if the [retryableWrites](https://docs.mongodb.com/manual/core/retryable-writes/#retryable-writes-and-multi-document-transactions) 
+option is set. If an write operation encounters an error it will throw  one of the
+following exceptions:
+
+* [pymongo.errors.ConnectionFailure](http://api.mongodb.com/python/current/api/pymongo/errors.html)
+* [pymongo.errors.OperationFailure](http://api.mongodb.com/python/current/api/pymongo/errors.html)
+
+Within these exceptions there will be a label called [TransientTransactionError](https://docs.mongodb.com/manual/core/transactions/#transactions-and-mongodb-drivers).
+This label can be detected using the *has_error_label(label)* function whihc is available
+in pymongo 3.7.0. Transient errors can be recovered from and the retry code in ```transactions_retry.py```
+has retry code for both writes and commits. Note that commits (and aborts) are retried
+once as per the [retryableWrites specification](https://docs.mongodb.com/manual/core/retryable-writes/). 
+
+In summary MongoDB transactions available in 4.0 give you multi-document ACID tranactions 
+for writes across multiple collections. Writes must complete in less than 60 seconds the total
+of all objects written cannot exceeed a single oplog entry (limited to 16MB). For now 
+transactions are limited to replica sets and in fact you must run a replica set to use
+transactions. 
+
+The easiest way to try out transactions is to setup your first cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) our Database as a Service 
+offering.
+

@@ -45,7 +45,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     client = pymongo.MongoClient(host=args.host)
-    system("./mongod.sh start", exitOnFail=False)
+    system("mlaunch start", exitOnFail=False)
     config = client.admin.command("replSetGetConfig")
     # pprint.pprint(electionTimeoutMillis)
     currentElectionTimeoutMillis = config["config"]["settings"]["electionTimeoutMillis"]
@@ -68,7 +68,7 @@ if __name__ == "__main__":
             if args.iterate > 0 and args.iterate == loop_count:
                 break
             print( count( loop_count, "(Re)starting replica-set"))
-            system("./mongod.sh start",exitOnFail=False)
+            system("mlaunch start",exitOnFail=False)
             if not args.procfile:
                 print(count(loop_count,"Getting list of mongod processes"))
                 system( "mlaunch list --verbose > mlaunch.procs")
@@ -112,6 +112,6 @@ if __name__ == "__main__":
             print(count(loop_count, "Sleeping: {}".format(args.delay)))
             time.sleep(args.delay)
     except KeyboardInterrupt :
-        system( "./mongod.sh stop")
+        system( "sudo mlaunch stop")
         print("exiting...")
 

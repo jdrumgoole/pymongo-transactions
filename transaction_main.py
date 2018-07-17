@@ -159,15 +159,20 @@ if __name__ == "__main__":
 
             i = i + 1
 
+            booking_functor = Transaction_Functor(book_seat,
+                                                  seats_collection,
+                                                  payments_collection,
+                                                  audit_collection,
+                                                  i, delay)
+
             if args.usetxns:
                 # If you were looping over txns in real-life you would reuse the session for all
                 # the transactions in the loop
                 #
                 with client.start_session() as session:
-                    transaction_function = Transaction_Functor( book_seat, seats_collection, payments_collection, audit_collection, i, delay)
-                    total_delay = total_delay + run_transaction_with_retry( transaction_function, session)
+                    total_delay = total_delay + run_transaction_with_retry( booking_functor, session)
             else:
-                total_delay = total_delay + book_seat(seats_collection, payments_collection, audit_collection, i, delay)
+                total_delay = total_delay + booking_functor()
 
     except KeyboardInterrupt:
 

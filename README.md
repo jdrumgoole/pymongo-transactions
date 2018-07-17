@@ -57,10 +57,11 @@ We recommend you take the following steps to setup your enviroment.
 * Install[Mtools](https://github.com/rueckstiess/mtools): Which is a set of utiltiies for MongoDB
 . The only Mtools program we will using is [mlaunch](http://blog.rueckstiess.com/mtools/mlaunch.html).
 Which is a easy what to launch a MongoDB replica set (required for transactions)
-* Start a replica set whose name is **txntest**.
+* Install [psutil](https://pypi.org/project/psutil/) which is required by Mtools.
+* Start a replica set whose name is **txntest**. (see the ```make init_server``` make target)
 
 
-There is a ``Makefile``` with targets for all these operations. For those of you on
+There is a ```Makefile``` with targets for all these operations. For those of you on
 platforms without access to Make it should be easy enought to cut and paste
 the commands out of the targets and run them on the command line.
 
@@ -171,7 +172,7 @@ Watching: payments
 ...
 </pre>
 
-## What Happens when you run without transactions?
+### What Happens when you run without transactions?
 
 Lets run the code without transactions first. If you examine the
 ```transaction_main.py``` code you will see a function
@@ -247,7 +248,7 @@ payments collection which only shows payments for seat 1A and 2A versus seat all
 If we want payments and seats to be instantly reconcliable and consistent we must execute the inserts inside a
 transaction.
 
-## What happens when you run with Transactions?
+### What happens when you run with Transactions?
 
 Now lets run the same system with ```--usetxns``` enabled. 
 

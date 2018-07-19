@@ -69,12 +69,17 @@ pip install pymongo
 * Install [Mtools](https://github.com/rueckstiess/mtools): Which is a set of utiltiies for MongoDB
 
 ```
-pip install mtools
+pip install mtools.
 ```
 
-. The only Mtools program we will using is [mlaunch](http://blog.rueckstiess.com/mtools/mlaunch.html).
+The only Mtools program we will using is [mlaunch](http://blog.rueckstiess.com/mtools/mlaunch.html).
 Which is a easy what to launch a MongoDB replica set (required for transactions)
 * Install [psutil](https://pypi.org/project/psutil/) which is required by Mtools.
+
+```
+pip install psutils
+```
+
 * Start a replica set whose name is **txntest**. (see the ```make init_server``` make target)
 
 

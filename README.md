@@ -53,8 +53,25 @@ to ensure that this example does not clash with an existing MongoDB installation
 We recommend you take the following steps to setup your enviroment.
 
 * Set a python [virtualenv](https://docs.python.org/3/library/venv.html)
+
+```
+cd pymongo-transactions
+virtualenv . pymongo-transactions
+source bin/activate
+```
+
 * Install the latest version of the Python MongoDB Driver (pymongo 3.7.0)
-* Install[Mtools](https://github.com/rueckstiess/mtools): Which is a set of utiltiies for MongoDB
+
+```
+pip install pymongo
+```
+
+* Install [Mtools](https://github.com/rueckstiess/mtools): Which is a set of utiltiies for MongoDB
+
+```
+pip install mtools
+```
+
 . The only Mtools program we will using is [mlaunch](http://blog.rueckstiess.com/mtools/mlaunch.html).
 Which is a easy what to launch a MongoDB replica set (required for transactions)
 * Install [psutil](https://pypi.org/project/psutil/) which is required by Mtools.
@@ -64,6 +81,13 @@ Which is a easy what to launch a MongoDB replica set (required for transactions)
 There is a ```Makefile``` with targets for all these operations. For those of you on
 platforms without access to Make it should be easy enought to cut and paste
 the commands out of the targets and run them on the command line.
+
+Running the ```Makefile```
+
+```
+cd pymongo-transactions
+make
+```
 
 ## Running the transactions example
 

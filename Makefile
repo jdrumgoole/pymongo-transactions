@@ -4,7 +4,7 @@
 # @author: Joe.Drumgoole@mongodb.com
 #
 PIPBIN=`which pip 2>/dev/null`
-MONGODBBIN=/usr/local/mongodb/bin
+MONGODBBIN=`which mongod | sed 's/\mongod//g'`
 PYTHON=python3
 
 install:version_check virtualenv pip_reqs init_server

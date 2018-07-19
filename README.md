@@ -73,7 +73,7 @@ $ source bin/activate
 
 <pre>
 <b>
-pip install mtools.
+pip install mtools
 </b>
 </pre>
 

@@ -24,7 +24,8 @@ class Transaction_Functor(object):
         if session is None:
             return self._func(*self._args, **self._kwargs)
         else:
-            return self._func(*self._args, **self._kwargs, session=session )
+            self._kwargs["session"] = session
+            return self._func(*self._args, **self._kwargs)
 
 
 def commit_with_retry(session):

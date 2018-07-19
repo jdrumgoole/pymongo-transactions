@@ -52,33 +52,38 @@ to ensure that this example does not clash with an existing MongoDB installation
 
 We recommend you take the following steps to setup your enviroment.
 
+## Preparation
 * Set a python [virtualenv](https://docs.python.org/3/library/venv.html)
 
-```
-cd pymongo-transactions
-virtualenv . pymongo-transactions
-source bin/activate
-```
+<pre>
+<b>
+$ cd pymongo-transactions
+$ virtualenv . pymongo-transactions
+$ source bin/activate
+</b>
+</pre>
 
-* Install the latest version of the Python MongoDB Driver (pymongo 3.7.0)
+* Install the latest version of the Python MongoDB Driver, [pymongo](https://pypi.org/project/pymongo/)
 
-```
-pip install pymongo
-```
+<pre>
+<b>pip install --upgrade pymongo</b>
+</pre>
 
 * Install [Mtools](https://github.com/rueckstiess/mtools): Which is a set of utiltiies for MongoDB
 
-```
+<pre>
+<b>
 pip install mtools.
-```
+</b>
+</pre>
 
 The only Mtools program we will using is [mlaunch](http://blog.rueckstiess.com/mtools/mlaunch.html).
 Which is a easy what to launch a MongoDB replica set (required for transactions)
 * Install [psutil](https://pypi.org/project/psutil/) which is required by Mtools.
 
-```
-pip install psutils
-```
+<pre>
+<b>pip install psutils</b>
+</pre>
 
 * Start a replica set whose name is **txntest**. (see the ```make init_server``` make target)
 
@@ -89,10 +94,14 @@ the commands out of the targets and run them on the command line.
 
 Running the ```Makefile```
 
-```
-cd pymongo-transactions
+<pre>
+<b>cd pymongo-transactions
 make
-```
+</b>
+</pre>
+
+You make need to run the Makefile as root ```sudo make``` if either your
+python enviroment was installed as root or MongoDB was installed as root.
 
 ## Running the transactions example
 

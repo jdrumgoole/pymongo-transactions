@@ -4,13 +4,13 @@
 # @author: Joe.Drumgoole@mongodb.com
 #
 PIPBIN=`which pip 2>/dev/null`
-MONGODBBIN=`dirname $(which mongod)`
+MONGODBBIN=`which mongod | xargs dirname`
 PYTHON=python3
 
 install:version_check virtualenv pip_reqs init_server
 	@echo "Transactions test environment ready"
 
-init_server: pip_check
+init_server: pip_check mongod_check
 	@echo "Setting up replica set";\
 	if [ -d "data" ];then\
 		echo "Already configured in 'data'";\
@@ -19,7 +19,7 @@ init_server: pip_check
 		. venv/bin/activate && mlaunch init --binarypath ${MONGODBBIN} --port 27100 --replicaset --name "txntest";\
 	fi
 
-start_server:
+start_server: mongod_check
 	@echo "Starting MongoDB replica set"
 	@if [ -d "data" ];then\
 		. venv/bin/activate && mlaunch start;\
@@ -42,6 +42,14 @@ pip_check:
 		echo "https://pip.pypa.io/en/stable/installing/";\
 		${PYTHON} -m webbrowser "https://pip.pypa.io/en/stable/installing/";\
 		exit 1;\
+	fi
+
+mongod_check:
+	@echo "Checking that mongod is on the path"
+	@if [ ! -x ${MONGODBBIN}/mongod ];then\
+		echo "${MONGODBBIN}/mongod cannot be found";\
+	else\
+		echo "${MONGODBBIN}/mongod found (and is executable)";\
 	fi
 
 pip_reqs: pip_check virtualenv

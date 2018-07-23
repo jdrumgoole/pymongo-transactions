@@ -77,13 +77,13 @@ notxns:
 	. venv/bin/activate && python transaction_main.py
 
 usetxns:
-	@. venv/bin/activate && python transaction_main.py --usetxns
+	. venv/bin/activate && python transaction_main.py --usetxns
 
 watch_seats:
-	@. venv/bin/activate && python watch_transactions.py --collection seats
+	. venv/bin/activate && python watch_transactions.py --collection seats
 
 watch_payments:
-	@. venv/bin/activate && python watch_transactions.py --collection payments
+	. venv/bin/activate && python watch_transactions.py --collection payments
 
 download:
 	@echo "You can download the latest version of MongoDB from https://www.mongodb.com/download-center?jmp=nav#production"

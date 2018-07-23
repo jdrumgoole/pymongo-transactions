@@ -5,7 +5,6 @@
 #
 PIPBIN=`which pip 2>/dev/null`
 MONGODBBIN=`which mongod | xargs dirname 2>/dev/null`
-PYTHON=python3
 
 install:version_check virtualenv pip_reqs init_server
 	@echo "Transactions test environment ready"
@@ -68,24 +67,23 @@ virtualenv: pip_check
 clean: stop_server
 	rm -rf data venv req_installed
 
-
-killer:
-	${PYTHON} kill_primary.py
-
-notxns:
-	${PYTHON} transaction_main.py
-
-usetxns:
-	${PYTHON} transaction_main.py --usetxns
-
 version_check:
 	${PYTHON} version_check.py 3
 
+killer:
+	. venv/bin/activate && python kill_primary.py
+
+notxns:
+	. venv/bin/activate && python transaction_main.py
+
+usetxns:
+	@. venv/bin/activate && python transaction_main.py --usetxns
+
 watch_seats:
-	${PYTHON} watch_transactions.py --collection seats
+	@. venv/bin/activate && python watch_transactions.py --collection seats
 
 watch_payments:
-	${PYTHON} watch_transactions.py --collection payments
+	@. venv/bin/activate && python watch_transactions.py --collection payments
 
 download:
 	@echo "You can download the latest version of MongoDB from https://www.mongodb.com/download-center?jmp=nav#production"

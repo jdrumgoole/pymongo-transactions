@@ -112,6 +112,6 @@ if __name__ == "__main__":
             print(count(loop_count, "Sleeping: {}".format(args.delay)))
             time.sleep(args.delay)
     except KeyboardInterrupt :
-        system( "sudo mlaunch stop")
+        system( "mlaunch stop")
         print("exiting...")
 

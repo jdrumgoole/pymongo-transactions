@@ -69,7 +69,7 @@ clean: stop_server
 	rm -rf data venv req_installed
 
 version_check:
-	${PYTHON} version_check.py 3
+	python3 version_check.py 3
 
 killer:
 	. venv/bin/activate && python kill_primary.py

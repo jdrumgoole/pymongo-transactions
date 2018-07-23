@@ -108,13 +108,7 @@ venv.bak/
 .idea/
 
 #MongoDB
-mongodb-osx-ssl-x86_64-4.0.0.tgz
-mongodb-osx-x86_64-4.0.0/
 data/
 
 #Mtools
 mlaunch.procs
-
-#Local files
-venv/
-data/

@@ -1,8 +1,9 @@
 #
 # Commands to setup the transactions demo code for Python and  MongoDB 4.0
 #
-# @author: Joe.Drumgoole@mongodb.com
+# @author: Joe.Drumgoole@mongodb.com @jdrumgoole on twitter.
 #
+
 PIPBIN=`which pip 2>/dev/null`
 MONGODBBIN=`which mongod | xargs dirname 2>/dev/null`
 

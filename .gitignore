@@ -114,3 +114,7 @@ data/
 
 #Mtools
 mlaunch.procs
+
+#Local files
+venv/
+data/

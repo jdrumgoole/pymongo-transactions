@@ -4,7 +4,7 @@
 # @author: Joe.Drumgoole@mongodb.com
 #
 PIPBIN=`which pip 2>/dev/null`
-MONGODBBIN=/usr/local/mongodb/bin
+MONGODBBIN=`which mongodx | xargs dirname 2>/dev/null`
 PYTHON=python3
 
 install:version_check virtualenv pip_reqs init_server
@@ -46,13 +46,11 @@ pip_check:
 
 mongod_check:
 	@echo "Checking that mongod is on the path"
-	@if [ ! -x ${MONGODBBIN}/mongod ];then\
-		echo "${MONGODBBIN}/mongod cannot be found";\
-		echo "Please edit the value for MONGODBBIN at the top of the Makefile";\
-		echo "Current value is '${MONGODBBIN}'";\
-		exit 1;\
+	@if [ "${MONGODBBIN}" = "" ];then\
+	    echo "'mongod' is not on the path [MONGODBBIN is '' in the Makefile]";\
+	    exit 1;\
 	else\
-		echo "${MONGODBBIN}/mongod found (and is executable)";\
+	    echo "found mongod in ${MONGODBBIN}";\
 	fi
 
 pip_reqs: pip_check virtualenv

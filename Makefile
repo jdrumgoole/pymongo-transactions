@@ -52,7 +52,7 @@ virtualenv: pip_check
 	sudo pip install virtualenv
 	@if [ ! -d "venv" ];then\
 		echo "making virtualenv in 'venv'";\
-		virtualenv venv;\
+		virtualenv -p python3 venv;\
 	fi
 
 #mtools dir and virtualenv

@@ -58,7 +58,7 @@ We recommend you take the following steps to setup your enviroment.
 <pre>
 <b>
 $ cd pymongo-transactions
-$ virtualenv . pymongo-transactions
+$ virtualenv -p python3 .
 $ source bin/activate
 </b>
 </pre>
@@ -82,7 +82,7 @@ Which is a easy what to launch a MongoDB replica set (required for transactions)
 * Install [psutil](https://pypi.org/project/psutil/) which is required by Mtools.
 
 <pre>
-<b>pip install psutils</b>
+<b>pip install psutil</b>
 </pre>
 
 * Start a replica set whose name is **txntest**. (see the ```make init_server``` make target)

@@ -13,7 +13,7 @@ install:version_check virtualenv pip_reqs init_server
 init_server: pip_check mongod_check
 	@echo "Setting up replica set";\
 	if [ -d "data" ];then\
-		echo "Already configured in 'data'";\
+		echo "Replica set Already configured in 'data' start with make start_server";\
 	else\
 		echo "Making new mlaunch environment in 'data'";\
 		. venv/bin/activate && mlaunch init --binarypath ${MONGODBBIN} --port 27100 --replicaset --name "txntest";\
@@ -21,7 +21,7 @@ init_server: pip_check mongod_check
 
 start_server: mongod_check
 	@echo "Starting MongoDB replica set"
-	@if [ -d "data" ];then\
+	-@if [ -d "data" ];then\
 		. venv/bin/activate && mlaunch start;\
 	else\
 		echo "No mlaunch data, run make init_server";\

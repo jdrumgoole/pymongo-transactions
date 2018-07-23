@@ -16,21 +16,21 @@ init_server: pip_check
 		echo "Already configured in 'data'";\
 	else\
 		echo "Making new mlaunch environment in 'data'";\
-		. venv/bin/activate && sudo mlaunch init --binarypath ${MONGODBBIN} --port 27100 --replicaset --name "txntest";\
+		(. venv/bin/activate && mlaunch init --binarypath ${MONGODBBIN} --port 27100 --replicaset --name "txntest");\
 	fi
 
 start_server:
 	@echo "Starting MongoDB replica set"
 	@if [ -d "data" ];then\
-		. venv/bin/activate && sudo mlaunch start;\
+		. venv/bin/activate && mlaunch start;\
 	else\
-		echo "No mlaunch data, run sudo make init_server";\
+		echo "No mlaunch data, run make init_server";\
 	fi
 
 stop_server:
 	@echo "Stopping MongoDB replica set"
 	@if [ -d "data" ];then\
-		. venv/bin/activate && sudo mlaunch stop;\
+		. venv/bin/activate && mlaunch stop;\
 	else\
 		echo "No mlaunch data, run make init_server";\
 	fi
@@ -49,7 +49,7 @@ pip_reqs: pip_check virtualenv
 	@. venv/bin/activate && pip install -r requirements.txt
 
 virtualenv: pip_check
-	sudo pip install virtualenv
+	pip install virtualenv
 	@if [ ! -d "venv" ];then\
 		echo "making virtualenv in 'venv'";\
 		virtualenv -p python3 venv;\

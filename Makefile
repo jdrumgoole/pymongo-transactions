@@ -4,7 +4,7 @@
 # @author: Joe.Drumgoole@mongodb.com
 #
 PIPBIN=`which pip 2>/dev/null`
-MONGODBBIN=`which mongodx | xargs dirname 2>/dev/null`
+MONGODBBIN=`which mongod | xargs dirname 2>/dev/null`
 PYTHON=python3
 
 install:version_check virtualenv pip_reqs init_server

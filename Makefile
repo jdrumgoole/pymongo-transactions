@@ -48,6 +48,7 @@ mongod_check:
 	@echo "Checking that mongod is on the path"
 	@if [ ! -x ${MONGODBBIN}/mongod ];then\
 		echo "${MONGODBBIN}/mongod cannot be found";\
+		exit 1;\
 	else\
 		echo "${MONGODBBIN}/mongod found (and is executable)";\
 	fi

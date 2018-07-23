@@ -4,7 +4,7 @@
 # @author: Joe.Drumgoole@mongodb.com
 #
 PIPBIN=`which pip 2>/dev/null`
-MONGODBBIN=`which mongod | sed 's/\mongod//g'`
+MONGODBBIN=`dirname $(which mongod)`
 PYTHON=python3
 
 install:version_check virtualenv pip_reqs init_server
@@ -16,7 +16,7 @@ init_server: pip_check
 		echo "Already configured in 'data'";\
 	else\
 		echo "Making new mlaunch environment in 'data'";\
-		(. venv/bin/activate && mlaunch init --binarypath ${MONGODBBIN} --port 27100 --replicaset --name "txntest");\
+		. venv/bin/activate && mlaunch init --binarypath ${MONGODBBIN} --port 27100 --replicaset --name "txntest";\
 	fi
 
 start_server:

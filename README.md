@@ -5,7 +5,7 @@ Multi-document transactions arrived in
 been transactional around updates to a single document but with 
 multi-document transactions we can now wrap a set of database operations
 inside a *start* and *commit* transaction call. This ensures that even with inserts and/or
-updates happening in multiple collections the external view of the data meets [ACID](https://en.wikipedia.org/wiki/ACID) constraints. 
+updates happening in multiple collections and/or databases the external view of the data meets [ACID](https://en.wikipedia.org/wiki/ACID) constraints. 
 
 To demonstrate transactions in action we use a trivial example app that emulates a flight 
 booking for an online airline application. In this simplified booking we need to undertake three
@@ -50,11 +50,9 @@ environment.
 All the programs in this example use a port range starting at **27100**
 to ensure that this example does not clash with an existing MongoDB installation.
 
-We recommend you take the following steps to setup your enviroment.
-
 ## Preparation
 
-To setup the environment you can run thorough these steps manually for for people
+To setup the environment you can run thorough the following steps manually. People
 that have make install use the ``make install`` command.
 
 ###Set a python [virtualenv](https://docs.python.org/3/library/venv.html)
@@ -65,9 +63,9 @@ $ virtualenv -p python3 venv
 $ source venv/bin/activate</b>
 </pre>
 
-###Install Python MongoDB Driver, [pymongo](https://pypi.org/project/pymongo/)
+### Install Python MongoDB Driver, [pymongo](https://pypi.org/project/pymongo/)
 
-Install the latest version of the PyMongo MongoDB Driver.
+Install the latest version of the PyMongo MongoDB Driver(3.7.1 at the time of writing).
 
 <pre>
 <b>pip install --upgrade pymongo</b>
@@ -75,24 +73,31 @@ Install the latest version of the PyMongo MongoDB Driver.
 
 ### Install [Mtools](https://github.com/rueckstiess/mtools)
 
-MTools is a  set of utiltiies for MongoDB that include tools to analus
+MTools is a collection of helper scripts to parse, filter, and visualize MongoDB log files 
+(mongod, mongos). mtools also includes mlaunch, a utility to quickly set 
+up complex MongoDB test environments on a local machine. For this demo we are going to use the
+[mlaunch](http://blog.rueckstiess.com/mtools/mlaunch.html) program. 
 
 <pre>
-<b>
-pip install mtools
-</b>
+<b>pip install mtools</b>
 </pre>
 
-The only Mtools program we will using is [mlaunch](http://blog.rueckstiess.com/mtools/mlaunch.html).
-Which is a easy what to launch a MongoDB replica set (required for transactions)
-* Install [psutil](https://pypi.org/project/psutil/) which is required by Mtools.
+the ``mlaunch`` program also requires the [psutil](https://pypi.org/project/psutil/) package. 
 
 <pre>
 <b>pip install psutil</b>
 </pre>
 
-* Start a replica set whose name is **txntest**. (see the ```make init_server``` make target)
+The  ``mlaunch`` program gives us a simple command to start a MongoDB replica set (required for transactions)
 
+Start a replica set whose name is **txntest**. (see the ```make init_server``` make target)
+for details:
+
+<pre>
+<b>mlaunch init --port 27100 --replicaset --name "txntest"</b>
+</pre>
+
+### Using the Makefile for configuration
 
 There is a ```Makefile``` with targets for all these operations. For those of you on
 platforms without access to Make it should be easy enought to cut and paste
@@ -105,13 +110,18 @@ Running the ```Makefile```
 make</b>
 </pre>
 
-You will need to have MongoDB 4.0 on your path. 
+You will need to have MongoDB 4.0 on your path. There are other convenience targets for 
+starting the demo programs:
 
+* `make notxns` : start the transactions client without using transactions
+* `make usetxns` : start the transactions client with transactions enabled
+* `make watch_seats` : watch the seats collection changing
+* `make watch_payments` : watch the payment collection changing
 
 ## Running the transactions example
 
 The transactions example consists of two python
-programs. ```transaction_main.py``` and ```watch_transactions.py```.
+programs. `transaction_main.py` and `watch_transactions.py`.
 
 ### Running transactions_main.py
 <pre>

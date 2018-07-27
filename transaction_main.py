@@ -1,5 +1,5 @@
 """
-Program to demon Transactions in MongoDB 4.0.
+Program to demo Transactions in MongoDB 4.0.
 
 @Author: Joe.Drumgoole@mongodb.com
 
@@ -99,24 +99,26 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     client = pymongo.MongoClient(host=args.host)
-    database = client["PYTHON_TXNS_EXAMPLE"]
-    payments_collection = database["payments"]
-    seats_collection = database["seats"]
-    audit_collection = database["audit"]
+    seatsdb = client["SEATSDB"]
+    paymentsdb = client["PAYMENTSDB"]
+    auditdb = client[ "AUDITDB"]
+    payments_collection = paymentsdb["payments"]
+    seats_collection = seatsdb["seats"]
+    audit_collection = auditdb["audit"]
     payments_collection.drop()
     seats_collection.drop()
     audit_collection.drop()
 
     if args.usetxns:
         print("Forcing collection creation (you can't create collections inside a txn)")
-        seats_collection    = create(database, "seats")
-        payments_collection = create(database, "payments")
-        audit_collection    = create(database, "audit")
+        seats_collection    = create(seatsdb, "seats")
+        payments_collection = create(paymentsdb, "payments")
+        audit_collection    = create(auditdb, "audit")
         print("Collections created")
 
-    print("using collection: {}.{}".format(database.name, seats_collection.name))
-    print("using collection: {}.{}".format(database.name, payments_collection.name))
-    print("using collection: {}.{}".format(database.name, audit_collection.name))
+    print("using collection: {}.{}".format(seatsdb.name, seats_collection.name))
+    print("using collection: {}.{}".format(paymentsdb.name, payments_collection.name))
+    print("using collection: {}.{}".format(auditdb.name, audit_collection.name))
 
     server_info = client.server_info()
     major_version = int(server_info['version'].partition(".")[0])

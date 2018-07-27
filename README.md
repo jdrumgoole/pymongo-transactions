@@ -3,11 +3,11 @@
 Multi-document transactions arrived in 
 [MongoDB 4.0](https://www.mongodb.com/download-center#community) which is now shipping. MongoDB has always
 been transactional around updates to a single document but with 
-multi-document transctions we can now wrap a set of database operations
+multi-document transactions we can now wrap a set of database operations
 inside a *start* and *commit* transaction call. This ensures that even with inserts and/or
 updates happening in multiple collections the external view of the data meets [ACID](https://en.wikipedia.org/wiki/ACID) constraints. 
 
-To demonstrae transactions in action we use a trivial example app that emulates a flight 
+To demonstrate transactions in action we use a trivial example app that emulates a flight 
 booking for an online airline application. In this simplified booking we need to undertake three
 operations:
 
@@ -15,7 +15,7 @@ operations:
 2. Pay for the seat (**payment_collection**)
 3. Update the count of allocated seats and sales (**audit_collection**)
 
-For this application we will use three seperate collections for these documents as detailed in bold above. 
+For this application we will use three separate collections for these documents as detailed in bold above. 
 The code in ```transactions_main.py``` updates these collections in serial unless the ```--usetxns``` argument
 is used. We then wrap the complete operation inside an ACID transaction. 
 The code in ``transactions_main.py`` is built directly using the MongoDB Python driver 
@@ -44,32 +44,38 @@ of a transaction.
 * __featurecompatibility.py__ : check and or set feature compatibility for
   the database (needs to be set to "4.0" for transactions)
 
-The Makefile outlines the operations that are required to set the test
-environment. You will need to install the following pieces of softwaare:
+The Makefile outlines the operations that are required to setuo the test
+environment. 
 
-All the programs in this example use a port range starting at 27100 
+All the programs in this example use a port range starting at **27100**
 to ensure that this example does not clash with an existing MongoDB installation.
 
 We recommend you take the following steps to setup your enviroment.
 
 ## Preparation
-* Set a python [virtualenv](https://docs.python.org/3/library/venv.html)
+
+To setup the environment you can run thorough these steps manually for for people
+that have make install use the ``make install`` command.
+
+###Set a python [virtualenv](https://docs.python.org/3/library/venv.html)
 
 <pre>
-<b>
-$ cd pymongo-transactions
-$ virtualenv -p python3 .
-$ source bin/activate
-</b>
+<b>$ cd pymongo-transactions
+$ virtualenv -p python3 venv
+$ source venv/bin/activate</b>
 </pre>
 
-* Install the latest version of the Python MongoDB Driver, [pymongo](https://pypi.org/project/pymongo/)
+###Install Python MongoDB Driver, [pymongo](https://pypi.org/project/pymongo/)
+
+Install the latest version of the PyMongo MongoDB Driver.
 
 <pre>
 <b>pip install --upgrade pymongo</b>
 </pre>
 
-* Install [Mtools](https://github.com/rueckstiess/mtools): Which is a set of utiltiies for MongoDB
+### Install [Mtools](https://github.com/rueckstiess/mtools)
+
+MTools is a  set of utiltiies for MongoDB that include tools to analus
 
 <pre>
 <b>
@@ -96,12 +102,11 @@ Running the ```Makefile```
 
 <pre>
 <b>cd pymongo-transactions
-make
-</b>
+make</b>
 </pre>
 
-You make need to run the Makefile as root ```sudo make``` if either your
-python enviroment was installed as root or MongoDB was installed as root.
+You will need to have MongoDB 4.0 on your path. 
+
 
 ## Running the transactions example
 

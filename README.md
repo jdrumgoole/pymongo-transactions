@@ -155,9 +155,9 @@ To run the program without transactions you can run it with no arguments:
 
 <pre>
 $ <b>python transaction_main.py</b>
-using collection: PYTHON_TXNS_EXAMPLE.seats
-using collection: PYTHON_TXNS_EXAMPLE.payments
-using collection: PYTHON_TXNS_EXAMPLE.audit
+using collection: SEATSDB.seats
+using collection: PAYMENTSDB.payments
+using collection: AUDITDB.audit
 Using a fixed delay of 1.0
 
 1. Booking seat: '1A'
@@ -185,6 +185,20 @@ The default is to run the program without using transactions. To use transaction
 configured (it must be set to 4.0). If you install MongoDB 4.0 over an existing ```/data``` directory containing 3.6
 databases then featureCompatibility will be set to 3.6 by default and transactions will not be available.```
 
+Note:
+If you get the following error running `python transaction_main.py --usetxns` that means you are
+picking up an older version of pymongo (older than 3.7.x) for which transactions support is lacking. 
+
+<pre>
+Traceback (most recent call last):
+  File "transaction_main.py", line 175, in <module>
+    total_delay = total_delay + run_transaction_with_retry( booking_functor, session)
+  File "/Users/jdrumgoole/GIT/pymongo-transactions/transaction_retry.py", line 52, in run_transaction_with_retry
+    with session.start_transaction():
+</pre>
+
+
+### Watching Transactions
 To actually see the effect of transactions we need to watch what is
 happening inside the collections ```PYTHON_TXNS_EXAMPLE.seats``` and ```
 PYTHON_TXNS_EXAMPLE.payments```.

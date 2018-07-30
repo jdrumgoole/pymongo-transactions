@@ -174,7 +174,7 @@ Using a fixed delay of 1.0
 ^C
 </pre>
 
-the program runs a function called ````txn_sequence()```` which books a seat on a plane
+The program runs a function called ````txn_sequence()```` which books a seat on a plane
 by adding documents to three collections. First it adds the seat allocation to the ```seats_collection```, then
 it adds a payment to the ```payments_collection``` finally it updates an audit count in the ```audit_collection```. 
 (This is a much simplified booking process used purely for illustration).
@@ -182,8 +182,8 @@ it adds a payment to the ```payments_collection``` finally it updates an audit c
 The default is to run the program without using transactions. To use transactions we have to add the command line flag
 ```--usetxns```. Run this to test that you are running MongoDB 4.0 and that the correct feature 
 [featureCompatibility](https://docs.mongodb.com/manual/reference/command/setFeatureCompatibilityVersion/) is
-configured (it must be set to 4.0). If you install MongoDB 4.0 over an existing ```/data``` directory containing 3.6
-databases then featureCompatibility will be set to 3.6 by default and transactions will not be available.```
+configured (it must be set to 4.0). If you install MongoDB 4.0 over an existing `/data` directory containing 3.6
+databases then featureCompatibility will be set to 3.6 by default and transactions will not be available.
 
 Note:
 If you get the following error running `python transaction_main.py --usetxns` that means you are
@@ -200,11 +200,11 @@ Traceback (most recent call last):
 
 ### Watching Transactions
 To actually see the effect of transactions we need to watch what is
-happening inside the collections ```PYTHON_TXNS_EXAMPLE.seats``` and ```
-PYTHON_TXNS_EXAMPLE.payments```.
+happening inside the collections `SEATSDB.seats` and `
+PAYMENTSDB.payments`.
 
 We can do this with ```watch_transactions.py```. The uses [MongoDB
-change streams](https://docs.mongodb.com/manual/changeStreams/)
+Change Streams](https://docs.mongodb.com/manual/changeStreams/)
 to see whats happening inside a collection in real-time. We need run
 two of these in parallel so its best to line them up side by side.
 
@@ -296,7 +296,7 @@ we emulate this by inserting a random delay. The default is  1 second.
 Now with the two ```watch_transactions.py``` scripts running for ```seats_collection``` and ```payments_collection```
 we can run ```transactions_main.py``` as follows:
 <pre>
-$ <b>python transaction_main.py --delay 2</b>
+$ <b>python transaction_main.py</b>
 </pre>
 
 The first run is with no transactions enabled. We have added a delay of 2 seconds
@@ -320,7 +320,7 @@ transaction.
 Now lets run the same system with ```--usetxns``` enabled. 
 
 <pre>
-$ <b>python transaction_main.py --delay 2 --usetxns</b>
+$ <b>python transaction_main.py --usetxns</b>
 </pre>
 
 We run with the exact same setup but now set ```--usetxns```.
@@ -432,20 +432,21 @@ following exceptions:
 * [pymongo.errors.OperationFailure](http://api.mongodb.com/python/current/api/pymongo/errors.html)
 
 Within these exceptions there will be a label called [TransientTransactionError](https://docs.mongodb.com/manual/core/transactions/#transactions-and-mongodb-drivers).
-This label can be detected using the *has_error_label(label)* function whihc is available
-in pymongo 3.7.0. Transient errors can be recovered from and the retry code in ```transactions_retry.py```
+This label can be detected using the *has_error_label(label)* function which is available
+in pymongo 3.7.x. Transient errors can be recovered from and the retry code in ```transactions_retry.py```
 has retry code for both writes and commits. Note that commits (and aborts) are retried
 once as per the [retryableWrites specification](https://docs.mongodb.com/manual/core/retryable-writes/). 
 
-In summary MongoDB transactions available in 4.0 give you multi-document ACID tranactions 
-for writes across multiple collections. Writes must complete in less than 60 seconds the total
-of all objects written cannot exceeed a single oplog entry (limited to 16MB). For now 
-transactions are limited to replica sets and in fact you must run a replica set to use
-transactions. 
+## Conclusions
+
+Multi-document Transactions are the final piece of the jigsaw for SQL developers who have been shying away from 
+MongoDB. Transactions make the programmers job easier and give teams that a migrating from an existing
+SQL schema a much more consistent transition path from an existing SQL code base to a new MongoDB code base. 
+As most migrations involving moving from highly normalised data strucutures to more flexible nested JSON documents
+one would expect that the number of requiree multi-document transactions will be less in a properly
+constructed MongoDB application. But where multi-document transactions are required programmers can 
+not include them using very similiar syntax to SQL.
+
 
 The easiest way to try out transactions is to setup your first cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) our Database as a Service 
 offering.
-
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE1NzUxMzUxNDldfQ==
--->

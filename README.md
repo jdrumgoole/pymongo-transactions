@@ -344,9 +344,9 @@ unless they are paid for.
 In a MongoDB replica set all writes are directed to the Primary node. If the primary node fails or becomes
 inaccessible (e.g. due to a network partition) writes in flight may fail. In a non-transactional scenario
 the driver will recover from a single failure and [retry the write](https://docs.mongodb.com/manual/core/retryable-writes/).
-In a multi-document transaction we must recover and rety in the event of these kinds of failures. this code is 
+In a multi-document transaction we must recover and retry in the event of these kinds of transient failures. This code is 
 encapsulated in `transaction_retry.py`. We both retry the transaction and retry the commit to handle scenarios
-where the primary failures within the transaction and/or the commit operation.
+where the primary fails within the transaction and/or the commit operation.
 
 <pre>
 

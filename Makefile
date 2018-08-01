@@ -71,7 +71,7 @@ clean: stop_server
 version_check:
 	python3 version_check.py 3
 
-killer:
+kill_primary:
 	. venv/bin/activate && python kill_primary.py
 
 notxns:

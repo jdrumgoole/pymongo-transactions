@@ -1,13 +1,13 @@
 # Introduction to MongoDB transactions in Python 
 
 Multi-document transactions arrived in 
-[MongoDB 4.0](https://www.mongodb.com/download-center#community) which is now shipping. MongoDB has always
-been transactional around updates to a single document but with 
-multi-document transactions we can now wrap a set of database operations
+[MongoDB 4.0](https://www.mongodb.com/download-center#community) in June 2018. MongoDB has always
+been transactional around updates to a single document. Now, with 
+multi-document transactions we can wrap a set of database operations
 inside a *start* and *commit* transaction call. This ensures that even with inserts and/or
-updates happening in multiple collections and/or databases the external view of the data meets [ACID](https://en.wikipedia.org/wiki/ACID) constraints. 
+updates happening across multiple collections and/or databases, the external view of the data meets [ACID](https://en.wikipedia.org/wiki/ACID) constraints. 
 
-To demonstrate transactions in action we use a trivial example app that emulates a flight 
+To demonstrate transactions in the wild we use a trivial example app that emulates a flight 
 booking for an online airline application. In this simplified booking we need to undertake three
 operations:
 
@@ -17,34 +17,38 @@ operations:
 
 For this application we will use three separate collections for these documents as detailed in bold above. 
 The code in ```transactions_main.py``` updates these collections in serial unless the ```--usetxns``` argument
-is used. We then wrap the complete operation inside an ACID transaction. 
+is used. We then wrap the complete set of operations inside an ACID transaction. 
 The code in ``transactions_main.py`` is built directly using the MongoDB Python driver 
-([Pymongo 3.7.0](https://api.mongodb.com/python/current/)).
+([Pymongo 3.7.1](https://api.mongodb.com/python/current/)).
 See the section on [client sessions](https://api.mongodb.com/python/current/api/pymongo/client_session.html)
-for an overview of the new transactions API in 3.7.0.
+for an overview of the new transactions API in 3.7.1. 
+
+The goal of this code is to demonstrate to the Python developer just how easy it is to
+covert existing code to transactions if required or to port older SQL based systems.
 
 ## Setting up your environment
 
 The following files can be found in the associated github repo, [pymongo-transactions.](https://github.com/jdrumgoole/pymongo-transactions)
-you can clone this repo and work alongside us during this blog post (please file any problems on the Issues tab for the repo).
-
-We assume for all that follows that you have [Python 3.6](https://www.python.org/downloads/) or greater correctly installed and on your path.
 
 * __.gitignore__ : Standard Github __.gitignore__ for Python
 * __LICENSE__ : Apaches 2.0 (standard Github) license
 * __Makefile__ : Makefile with targets for default operations
-* __transaction_main.py__ : Run a set of writes with and without transactions run 
-```python transactions_main.py -h``` for help.
+* __transaction_main.py__ : Run a set of writes with and without transactions. Run 
+`python transactions_main.py -h` for help.
 * __transactions_retry.py__ : The file containing the transactions retry functions.
-* __watch_transactions.py__ : Use a mongodb change stream to watch collections
+* __watch_transactions.py__ : Use a MongoDB change stream to watch collections
 as they change when transactions_main.py is running
 * __kill_primary.py__ : Starts a MongoDB replica set (on port 7100) and kills the
-primary on a regular basis. Used to emulate an election happening in the middle
+primary on a regular basis. This is used to emulate an election happening in the middle
 of a transaction.
-* __featurecompatibility.py__ : check and or set feature compatibility for
-  the database (needs to be set to "4.0" for transactions)
+* __featurecompatibility.py__ : check and/or set feature compatibility for
+  the database (it needs to be set to "4.0" for transactions)
+  
+you can clone this repo and work alongside us during this blog post (please file any problems on the Issues tab for the repo).
 
-The Makefile outlines the operations that are required to setuo the test
+We assume for all that follows that you have [Python 3.6](https://www.python.org/downloads/) or greater correctly installed and on your path.
+
+The `Makefile` outlines the operations that are required to setup the test
 environment. 
 
 All the programs in this example use a port range starting at **27100**
@@ -52,10 +56,10 @@ to ensure that this example does not clash with an existing MongoDB installation
 
 ## Preparation
 
-To setup the environment you can run thorough the following steps manually. People
-that have make install use the ``make install`` command.
+To setup the environment you can run through the following steps manually. People
+that have `make` can speed up installation by using the ``make install`` command.
 
-###Set a python [virtualenv](https://docs.python.org/3/library/venv.html)
+### Set a python [virtualenv](https://docs.python.org/3/library/venv.html)
 
 <pre>
 <b>$ cd pymongo-transactions
@@ -65,7 +69,7 @@ $ source venv/bin/activate</b>
 
 ### Install Python MongoDB Driver, [pymongo](https://pypi.org/project/pymongo/)
 
-Install the latest version of the PyMongo MongoDB Driver(3.7.1 at the time of writing).
+Install the latest version of the PyMongo MongoDB Driver (3.7.1 at the time of writing).
 
 <pre>
 <b>pip install --upgrade pymongo</b>
@@ -74,8 +78,8 @@ Install the latest version of the PyMongo MongoDB Driver(3.7.1 at the time of wr
 ### Install [Mtools](https://github.com/rueckstiess/mtools)
 
 MTools is a collection of helper scripts to parse, filter, and visualize MongoDB log files 
-(mongod, mongos). mtools also includes mlaunch, a utility to quickly set 
-up complex MongoDB test environments on a local machine. For this demo we are going to use the
+(mongod, mongos). mtools also includes `mlaunch`, a utility to quickly set 
+up complex MongoDB test environments on a local machine. For this demo we are only going to use the
 [mlaunch](http://blog.rueckstiess.com/mtools/mlaunch.html) program. 
 
 <pre>
@@ -88,7 +92,8 @@ the ``mlaunch`` program also requires the [psutil](https://pypi.org/project/psut
 <b>pip install psutil</b>
 </pre>
 
-The  ``mlaunch`` program gives us a simple command to start a MongoDB replica set (required for transactions)
+The  ``mlaunch`` program gives us a simple command to start a MongoDB replica set as transactions
+are only supported on a replica set
 
 Start a replica set whose name is **txntest**. (see the ```make init_server``` make target)
 for details:
@@ -145,11 +150,11 @@ optional arguments:
 $
 </pre>
 
-You can choose to use ``--delay`` or ``--randdelay`` if you use both ``--delay`` takes precedence. the ``--randdelay``
-parameter creats a random delay between a lower and an upperbound that will be added between each
+You can choose to use `--delay` or `--randdelay`. if you use both `--delay` takes precedence. The `--randdelay`
+parameter creates a random delay between a lower and an upper bound that will be added between each
 insertion event. 
 
-The ``transactions_main.py`` program knows to use the **txntest** replica set and the right default port range.
+The `transactions_main.py` program knows to use the **txntest** replica set and the right default port range.
 
 To run the program without transactions you can run it with no arguments:
 
@@ -174,20 +179,21 @@ Using a fixed delay of 1.0
 ^C
 </pre>
 
-The program runs a function called ````txn_sequence()```` which books a seat on a plane
-by adding documents to three collections. First it adds the seat allocation to the ```seats_collection```, then
-it adds a payment to the ```payments_collection``` finally it updates an audit count in the ```audit_collection```. 
+The program runs a function called `book_seat()` which books a seat on a plane
+by adding documents to three collections. First it adds the seat allocation to the `seats_collection`, then
+it adds a payment to the payments_collection`, finally it updates an audit count in the ```audit_collection```. 
 (This is a much simplified booking process used purely for illustration).
 
-The default is to run the program without using transactions. To use transactions we have to add the command line flag
-```--usetxns```. Run this to test that you are running MongoDB 4.0 and that the correct feature 
+The default is to run the program **without** using transactions. To use transactions we have to add the command line flag
+`--usetxns`. Run this to test that you are running MongoDB 4.0 and that the correct 
 [featureCompatibility](https://docs.mongodb.com/manual/reference/command/setFeatureCompatibilityVersion/) is
 configured (it must be set to 4.0). If you install MongoDB 4.0 over an existing `/data` directory containing 3.6
 databases then featureCompatibility will be set to 3.6 by default and transactions will not be available.
 
 Note:
 If you get the following error running `python transaction_main.py --usetxns` that means you are
-picking up an older version of pymongo (older than 3.7.x) for which transactions support is lacking. 
+picking up an older version of pymongo (older than 3.7.x) for which there is no multi-document transactions
+support. 
 
 <pre>
 Traceback (most recent call last):
@@ -195,6 +201,7 @@ Traceback (most recent call last):
     total_delay = total_delay + run_transaction_with_retry( booking_functor, session)
   File "/Users/jdrumgoole/GIT/pymongo-transactions/transaction_retry.py", line 52, in run_transaction_with_retry
     with session.start_transaction():
+AttributeError: 'ClientSession' object has no attribute 'start_transaction'
 </pre>
 
 
@@ -203,12 +210,12 @@ To actually see the effect of transactions we need to watch what is
 happening inside the collections `SEATSDB.seats` and `
 PAYMENTSDB.payments`.
 
-We can do this with ```watch_transactions.py```. The uses [MongoDB
+We can do this with ```watch_transactions.py```. This script uses [MongoDB
 Change Streams](https://docs.mongodb.com/manual/changeStreams/)
-to see whats happening inside a collection in real-time. We need run
-two of these in parallel so its best to line them up side by side.
+to see what's happening inside a collection in real-time. We need to run
+two of these in parallel so it's best to line them up side by side.
 
-here is the ```watch_transactions.py``` program:
+Here is the ```watch_transactions.py``` program:
 
 <pre>
 $ <b>python watch_transactions.py -h</b>
@@ -223,7 +230,7 @@ optional arguments:
                         PYTHON_TXNS_EXAMPLE.seats_collection]
 </pre>
   
-We need to watch each collection so in each window start the watcher.
+We need to watch each collection so in two separate terminal windows start the watcher.
 
 Window 1:
 <pre>
@@ -288,9 +295,9 @@ def <b>book_seat</b>(seats, payments, audit, seat_no, delay_range, session=None)
 </pre>
 
 This program emulates a very simplified airline booking with a seat
-being allocated and then paid for. These are often seperated by a reasonable time frame (e.f. seat allocation vs external
+being allocated and then paid for. These are often separated by a reasonable time frame (e.f. seat allocation vs external
 credit card validation and anti-fraud check) and
-we emulate this by inserting a random delay. The default is  1 second.
+we emulate this by inserting a delay. The default is  1 second.
 
 
 Now with the two ```watch_transactions.py``` scripts running for ```seats_collection``` and ```payments_collection```
@@ -299,8 +306,7 @@ we can run ```transactions_main.py``` as follows:
 $ <b>python transaction_main.py</b>
 </pre>
 
-The first run is with no transactions enabled. We have added a delay of 2 seconds
-between the seat and payment insert operations in ``transactions_main.py`` so we can see the delay clearly. 
+The first run is with no transactions enabled. 
 
 The bottom window shows ```transactions_main.py``` running. On the top left we are watching the inserts to the
 seats collection. On the top right we are watching inserts to the payments collection. 
@@ -309,10 +315,10 @@ seats collection. On the top right we are watching inserts to the payments colle
 
 We can see that the payments window lags the seats window as the watchers only update when the insert is complete.
 Thus seats sold cannot be easily reconciled with corresponding payments. If after the third seat has been booked we CTRL-C
-the program we can see that the program exits before writing the payment. This is reflected in the change-stream for
-payments collection which only shows payments for seat 1A and 2A versus seat allocations for 1A, 2A and 3A. 
+the program we can see that the program exits before writing the payment. This is reflected in the Change Stream for
+the payments collection which only shows payments for seat 1A and 2A versus seat allocations for 1A, 2A and 3A. 
 
-If we want payments and seats to be instantly reconcliable and consistent we must execute the inserts inside a
+If we want payments and seats to be instantly reconcilable and consistent we must execute the inserts inside a
 transaction.
 
 ### What happens when you run with Transactions?
@@ -334,17 +340,61 @@ Now neither the seat nor the payment appear in the change streams unlike the fir
 This is where transactions shine in world where all or nothing is the watchword. We never want to keeps seats allocated 
 unless they are paid for. 
 
-## What happens during elections?
+## What happens during failure?
 
-As MongoDB is a distributed database we have to expect that occasionally the network will interrupt a write
-normally this happens during an election where one node takes over from another to become the primary node
-in a replica set.
-
-In order to observe what happens during elections we can use the script ```kill_primary.py```. This script 
-will start a replica-set and continously kill the primary. 
+In a MongoDB replica set all writes are directed to the Primary node. If the primary node fails or becomes
+inaccessible (e.g. due to a network partition) writes in flight may fail. In a non-transactional scenario
+the driver will recover from a single failure and [retry the write](https://docs.mongodb.com/manual/core/retryable-writes/).
+In a multi-document transaction we must recover and rety in the event of these kinds of failures. this code is 
+encapsulated in `transaction_retry.py`. We both retry the transaction and retry the commit to handle scenarios
+where the primary failures within the transaction and/or the commit operation.
 
 <pre>
-$ <b>sudo python3 kill_primary.py</b>
+
+def commit_with_retry(session):
+    while True:
+        try:
+            # Commit uses write concern set at transaction start.
+            session.commit_transaction()
+            print("Transaction committed.")
+            break
+        except (pymongo.errors.ConnectionFailure, pymongo.errors.OperationFailure) as exc:
+            # Can retry commit
+            if exc.has_error_label("UnknownTransactionCommitResult"):
+                print("UnknownTransactionCommitResult, retrying "
+                      "commit operation ...")
+                continue
+            else:
+                print("Error during commit ...")
+                raise
+
+def run_transaction_with_retry(functor, session):
+    assert (isinstance(functor, Transaction_Functor))
+    while True:
+        try:
+            with session.start_transaction():
+                result=functor(session)  # performs transaction
+                commit_with_retry(session)
+            break
+        except (pymongo.errors.ConnectionFailure, pymongo.errors.OperationFailure) as exc:
+            # If transient error, retry the whole transaction
+            if exc.has_error_label("TransientTransactionError"):
+                print("TransientTransactionError, retrying "
+                      "transaction ...")
+                continue
+            else:
+                raise
+
+    return result
+</pre>
+ 
+
+In order to observe what happens during elections we can use the script ```kill_primary.py```. This script 
+will start a replica-set and continuously kill the primary. 
+
+<pre>
+$ <b>make kill_primary</b>
+. venv/bin/activate && python kill_primary.py
 no nodes started.
 Current electionTimeoutMillis: 500
 1. (Re)starting replica-set
@@ -370,16 +420,17 @@ Process list written to mlaunch.procs
 3. Sleeping: 1.0
 </pre>
 
-```kill_primary.py``` resets [electionTimeOutMillis](https://docs.mongodb.com/manual/reference/replica-configuration/index.html)
+`kill_primary.py` resets [electionTimeOutMillis](https://docs.mongodb.com/manual/reference/replica-configuration/index.html)
 to 500ms from its default of 10000ms (10 seconds). This allows elections
-to resolve more quickly for the purposes of this test.
+to resolve more quickly for the purposes of this test as we are running everything locally.
 
 
-Once ```kill_primary.py``` is running
-we can start up ```transactions_main.py``` again using the ```--usetxns``` argument.
+Once `kill_primary.py` is running
+we can start up `transactions_main.py` again using the `--usetxns` argument.
 
 <pre>
-$ <b>python3 transaction_main.py  --usetxns</b>
+$ <b>make usetxns</b>
+. venv/bin/activate && python transaction_main.py --usetxns
 Forcing collection creation (you can't create collections inside a txn)
 Collections created
 using collection: PYTHON_TXNS_EXAMPLE.seats
@@ -422,10 +473,8 @@ Transaction committed.
 </pre>
 
 As you can see during elections the transaction will be aborted and must
-be retried. IF you look at the ```transaction_rety.py``` code you
-will see how this happens. The first thing to realise is that write operations
-inside a transaction are not retried even if the [retryableWrites](https://docs.mongodb.com/manual/core/retryable-writes/#retryable-writes-and-multi-document-transactions) 
-option is set. If an write operation encounters an error it will throw  one of the
+be retried. If you look at the `transaction_rety.py` code you
+will see how this happens. If a write operation encounters an error it will throw  one of the
 following exceptions:
 
 * [pymongo.errors.ConnectionFailure](http://api.mongodb.com/python/current/api/pymongo/errors.html)
@@ -433,20 +482,25 @@ following exceptions:
 
 Within these exceptions there will be a label called [TransientTransactionError](https://docs.mongodb.com/manual/core/transactions/#transactions-and-mongodb-drivers).
 This label can be detected using the *has_error_label(label)* function which is available
-in pymongo 3.7.x. Transient errors can be recovered from and the retry code in ```transactions_retry.py```
-has retry code for both writes and commits. Note that commits (and aborts) are retried
-once as per the [retryableWrites specification](https://docs.mongodb.com/manual/core/retryable-writes/). 
+in pymongo 3.7.x. Transient errors can be recovered from and the retry code in `transactions_retry.py`
+has code that retries for both writes and commits (see above). 
 
 ## Conclusions
 
-Multi-document Transactions are the final piece of the jigsaw for SQL developers who have been shying away from 
-MongoDB. Transactions make the programmers job easier and give teams that a migrating from an existing
-SQL schema a much more consistent transition path from an existing SQL code base to a new MongoDB code base. 
-As most migrations involving moving from highly normalised data strucutures to more flexible nested JSON documents
-one would expect that the number of requiree multi-document transactions will be less in a properly
+Multi-document transactions are the final piece of the jigsaw for SQL developers who have been shying away from trying 
+MongoDB. ACID transactions make the programmers job easier and give teams that are migrating from an existing
+SQL schema a much more consistent and convenient transition path.
+
+As most migrations involving moving from highly normalised data structures to more natural and flexible nested JSON documents
+one would expect that the number of required multi-document transactions will be less in a properly
 constructed MongoDB application. But where multi-document transactions are required programmers can 
-not include them using very similiar syntax to SQL.
+now include them using very similar syntax to SQL.
 
+With ACID transactions in MongoDB 4.0 it can now be the first choice for an even broader range of 
+application use cases. 
 
-The easiest way to try out transactions is to setup your first cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) our Database as a Service 
+Why not try our transactions today by setting up your first cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) our Database as a Service 
 offering.
+
+To try it locally [download MongoDB 4.0](https://www.mongodb.com/download-center#production).
+ 

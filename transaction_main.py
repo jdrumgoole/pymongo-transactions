@@ -51,7 +51,7 @@ def book_seat(seats, payments, audit, seat_no, delay_range, session=None):
     If session is not None we are in a transaction
 
     :param seats: seats collection
-    :param payments: payments colection
+    :param payments: payments collection
     :param audit: audit collection
     :param seat_no: the number of the seat to be booked (defaults to row A)
     :param delay_range: A tuple indicating a random delay between two ranges or a single float fixed delay

@@ -105,7 +105,7 @@ for details:
 ### Using the Makefile for configuration
 
 There is a ```Makefile``` with targets for all these operations. For those of you on
-platforms without access to Make it should be easy enought to cut and paste
+platforms without access to Make it should be easy enough to cut and paste
 the commands out of the targets and run them on the command line.
 
 Running the ```Makefile```
@@ -147,10 +147,9 @@ optional arguments:
   --randdelay RANDDELAY RANDDELAY
                         Create a delay set randomly between the two bounds
                         [default: None]
-$
 </pre>
 
-You can choose to use `--delay` or `--randdelay`. if you use both `--delay` takes precedence. The `--randdelay`
+You can choose to use `--delay` or `--randdelay`. if you use both `--delay` takes precedence. The `--randdelay` 
 parameter creates a random delay between a lower and an upper bound that will be added between each
 insertion event. 
 
@@ -260,7 +259,7 @@ def <b>book_seat</b>(seats, payments, audit, seat_no, delay_range, session=None)
     If session is not None we are in a transaction
 
     :param seats: seats collection
-    :param payments: payments colection
+    :param payments: payments collection
     :param seat_no: the number of the seat to be booked (defaults to row A)
     :param delay_range: A tuple indicating a random delay between two ranges or a single float fixed delay
     :param session: Session object required by a MongoDB transaction
@@ -488,10 +487,10 @@ has code that retries for both writes and commits (see above).
 ## Conclusions
 
 Multi-document transactions are the final piece of the jigsaw for SQL developers who have been shying away from trying 
-MongoDB. ACID transactions make the programmers job easier and give teams that are migrating from an existing
+MongoDB. ACID transactions make the programmer's job easier and give teams that are migrating from an existing
 SQL schema a much more consistent and convenient transition path.
 
-As most migrations involving moving from highly normalised data structures to more natural and flexible nested JSON documents
+As most migrations involving a move from highly normalised data structures to more natural and flexible nested JSON documents
 one would expect that the number of required multi-document transactions will be less in a properly
 constructed MongoDB application. But where multi-document transactions are required programmers can 
 now include them using very similar syntax to SQL.

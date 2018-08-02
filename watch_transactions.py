@@ -25,7 +25,6 @@ if __name__ == "__main__":
 
     database = client[args.database]
     collection = database[args.collection]
-    output = database["watcher"]
 
     try:
         while True:
@@ -48,7 +47,6 @@ if __name__ == "__main__":
                     print("cluster time : {}".format(d["clusterTime"].as_datetime()))
                     print("collection   : {}.{}".format(d["ns"]["db"], d["ns"]["coll"]))
                     print("doc          : {}".format(d["fullDocument"]))
-                    output.insert_one(d)
 
     except KeyboardInterrupt:
         print("Closing watch cursor")

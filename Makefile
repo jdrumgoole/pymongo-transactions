@@ -40,8 +40,10 @@ pip_check:
 	@if [ "${PIPBIN}" = "" ];then\
 		echo "pip is not installed. Please install using instructions from:";\
 		echo "https://pip.pypa.io/en/stable/installing/";\
-		${PYTHON} -m webbrowser "https://pip.pypa.io/en/stable/installing/";\
+		python -m webbrowser "https://pip.pypa.io/en/stable/installing/";\
 		exit 1;\
+	else\
+		echo "using pip in '${PIPBIN}'";\
 	fi
 
 mongod_check:

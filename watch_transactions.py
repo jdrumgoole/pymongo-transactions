@@ -11,8 +11,6 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
 
-    database_name = "PYTHON_TXNS_EXAMPLE"
-
     parser.add_argument("--host", default="mongodb://localhost:27100/?replicaSet=txntest",
                         help="mongodb URI for connecting to server [default: %(default)s]")
     parser.add_argument("--database", default="SEATSDB", help="Watch <database.collection> [default: %(default)s]")

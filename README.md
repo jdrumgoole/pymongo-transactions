@@ -31,7 +31,7 @@ covert existing code to transactions if required or to port older SQL based syst
 The following files can be found in the associated github repo, [pymongo-transactions.](https://github.com/jdrumgoole/pymongo-transactions)
 
 * __.gitignore__ : Standard Github __.gitignore__ for Python
-* __LICENSE__ : Apaches 2.0 (standard Github) license
+* __LICENSE__ : Apache's 2.0 (standard Github) license
 * __Makefile__ : Makefile with targets for default operations
 * __transaction_main.py__ : Run a set of writes with and without transactions. Run 
 `python transactions_main.py -h` for help.
@@ -149,7 +149,7 @@ optional arguments:
                         [default: None]
 </pre>
 
-You can choose to use `--delay` or `--randdelay`. if you use both `--delay` takes precedence. The `--randdelay` 
+You can choose to use `--delay` or `--randdelay`. If you use both `--delay` takes precedence. The `--randdelay` 
 parameter creates a random delay between a lower and an upper bound that will be added between each
 insertion event. 
 
